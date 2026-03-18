@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build"
   },
   "dependencies": {
+    "@ant-design/icons-vue": "^7.0.1",
     "@tailwindcss/vite": "^4.2.1",
     "ant-design-vue": "^4.2.6",
     "tailwindcss": "^4.2.1",
