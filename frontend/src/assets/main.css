@@ -9,7 +9,15 @@
   min-height: 100vh;
 }
 
-body,
+html {
+  font-size: 62.5%;
+}
+
+body {
+  font-family: "Noto Sans JP", sans-serif !important;
+  font-size: 1.6rem;
+}
+
 input,
 button,
 textarea,
