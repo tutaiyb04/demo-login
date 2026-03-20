@@ -249,7 +249,7 @@ const navigateTo = (path: string) => {
               <RouterLink
                 v-if="!isTopPage"
                 to="/wf-tops"
-                class="font-medium text-blue-600 hover:text-blue-500"
+                class="font-medium !text-gray-400 hover:!text-gray-400 hover:!bg-white"
               >
                 トップページ
               </RouterLink>

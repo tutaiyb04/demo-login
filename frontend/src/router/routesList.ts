@@ -12,6 +12,7 @@ import UserManagementView from "@/views/management/UserManagementView.vue";
 import ApplyRouteListView from "@/views/register/ApplyRouteListView.vue";
 import FilesView from "@/views/register/FilesView.vue";
 import LatestNewsView from "@/views/register/LatestNewsView.vue";
+import NewsDetailView from "@/views/register/NewsDetailView.vue";
 import TopView from "@/views/TopView.vue";
 import UserView from "@/views/UserView.vue";
 import type { RouteRecordRaw } from "vue-router";
@@ -189,6 +190,17 @@ export const routesList: RouteRecordRaw[] = [
     component: LatestNewsView,
     meta: {
       title: "お知らせ一覧・編集",
+      layoutType: "admin",
+      requiresAuth: true,
+      parentKey: "register_menu",
+    },
+  },
+  {
+    path: "/latest-news/:id",
+    name: "news-detail",
+    component: NewsDetailView,
+    meta: {
+      title: "お知らせ詳細",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "register_menu",
