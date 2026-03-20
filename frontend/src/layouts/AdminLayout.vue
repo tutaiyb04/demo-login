@@ -10,18 +10,19 @@ const openKeys = ref<string[]>([]);
 const selectedKeys = ref<string[]>([]);
 
 const isTopPage = computed(() => route.name === "wf-tops");
-
 const pageTitle = computed(() => route.meta.title as string);
 
 watch(
   () => route.path,
   (newPath) => {
-    if (newPath === "/wf-tops") {
-      selectedKeys.value = [];
-    } else if (newPath === "/users") {
-      selectedKeys.value = [];
+    selectedKeys.value = [newPath];
+
+    const parentKey = route.meta.parentKey as string;
+    if (parentKey && !openKeys.value.includes(parentKey)) {
+      openKeys.value.push(parentKey);
     }
   },
+  { immediate: true },
 );
 
 onMounted(() => {
@@ -159,36 +160,82 @@ const navigateTo = (path: string) => {
             </svg>
           </template>
 
-          <a-sub-menu key="sub1">
+          <a-sub-menu key="application_menu">
             <template #title>申請する</template>
-            <a-menu-item key="1">申請書の新規作成</a-menu-item>
-            <a-menu-item key="2">申請書一覧</a-menu-item>
-            <a-menu-item key="3">完了した申請一覧</a-menu-item>
+            <a-menu-item
+              key="/application-register"
+              @click="navigateTo('/application-register')"
+              >申請書の新規作成</a-menu-item
+            >
+            <a-menu-item key="/my-tasks" @click="navigateTo('/my-tasks')"
+              >申請書一覧</a-menu-item
+            >
+            <a-menu-item
+              key="/completed-applications-list"
+              @click="navigateTo('/completed-applications-list')"
+              >完了した申請一覧</a-menu-item
+            >
           </a-sub-menu>
 
-          <a-sub-menu key="sub2">
+          <a-sub-menu key="acceptance_menu">
             <template #title>承認する</template>
-            <a-menu-item key="4">申請を承認</a-menu-item>
-            <a-menu-item key="5">承認済み一覧</a-menu-item>
+            <a-menu-item
+              key="/approved-tasks"
+              @click="navigateTo('/approved-tasks')"
+              >申請を承認</a-menu-item
+            >
+            <a-menu-item
+              key="/approved-applications-list"
+              @click="navigateTo('/approved-applications-list')"
+              >承認済み一覧</a-menu-item
+            >
           </a-sub-menu>
 
-          <a-sub-menu key="sub3">
+          <a-sub-menu key="admin_menu">
             <template #title>管理者機能</template>
-            <a-menu-item key="6">申請書マスタ一覧</a-menu-item>
-            <a-menu-item key="8">会社マスタ</a-menu-item>
-            <a-menu-item key="9">部署マスタ</a-menu-item>
-            <a-menu-item key="10">役職マスタ</a-menu-item>
-            <a-menu-item key="11" @click="navigateTo('/users')">
+            <a-menu-item
+              key="/application-document-list"
+              @click="navigateTo('/application-document-list')"
+              >申請書マスタ一覧</a-menu-item
+            >
+            <a-menu-item
+              key="/company-list"
+              @click="navigateTo('/company-list')"
+              >会社マスタ</a-menu-item
+            >
+            <a-menu-item
+              key="/department-list"
+              @click="navigateTo('/department-list')"
+              >部署マスタ</a-menu-item
+            >
+            <a-menu-item
+              key="/position-list"
+              @click="navigateTo('/position-list')"
+              >役職マスタ</a-menu-item
+            >
+            <a-menu-item key="/users" @click="navigateTo('/users')">
               ユーザーマスタ
             </a-menu-item>
-            <a-menu-item key="12">ユーザー一括登録</a-menu-item>
+            <a-menu-item
+              key="/user-import-management"
+              @click="navigateTo('/user-import-management')"
+              >ユーザー一括登録</a-menu-item
+            >
           </a-sub-menu>
 
-          <a-sub-menu key="sub4">
+          <a-sub-menu key="register_menu">
             <template #title>登録</template>
-            <a-menu-item key="13">ファイル一覧・編集</a-menu-item>
-            <a-menu-item key="14">申請ルート一覧・編集</a-menu-item>
-            <a-menu-item key="15">お知らせ一覧・編集</a-menu-item>
+            <a-menu-item key="/files" @click="navigateTo('/files')"
+              >ファイル一覧・編集</a-menu-item
+            >
+            <a-menu-item
+              key="/application-route-list"
+              @click="navigateTo('/application-route-list')"
+              >申請ルート一覧・編集</a-menu-item
+            >
+            <a-menu-item key="/latest-news" @click="navigateTo('/latest-news')"
+              >お知らせ一覧・編集</a-menu-item
+            >
           </a-sub-menu>
         </a-menu>
       </a-layout-sider>
