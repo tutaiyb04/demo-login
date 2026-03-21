@@ -18,7 +18,7 @@ router.beforeEach((to, from, next) => {
   if (requiresAuth && !isAuthenticated) {
     next({ name: "login" });
   } else if (to.name === "login" && isAuthenticated) {
-    next({ name: "top" });
+    next({ name: "wf-tops" });
   } else {
     next();
   }

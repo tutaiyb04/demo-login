@@ -241,7 +241,7 @@ const navigateTo = (path: string) => {
       </a-layout-sider>
 
       <a-layout-content
-        class="!bg-[#f0f2f5] flex flex-col h-full overflow-hidden"
+        class="!bg-[#f1f7f7] flex flex-col h-full overflow-hidden"
       >
         <div class="bg-white px-6 py-3 border-b border-gray-200 shrink-0">
           <a-breadcrumb separator=">">
