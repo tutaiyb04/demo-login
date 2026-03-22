@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PageHeader from "@/components/PageHeader.vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { RouterLink, useRoute, useRouter } from "vue-router";
 
@@ -8,9 +9,6 @@ const route = useRoute();
 const loggedInUser = ref<string>("");
 const openKeys = ref<string[]>([]);
 const selectedKeys = ref<string[]>([]);
-
-const isTopPage = computed(() => route.name === "wf-tops");
-const pageTitle = computed(() => route.meta.title as string);
 
 watch(
   () => route.path,
@@ -243,24 +241,7 @@ const navigateTo = (path: string) => {
       <a-layout-content
         class="!bg-[#f1f7f7] flex flex-col h-full overflow-hidden"
       >
-        <div class="bg-white px-6 py-3 border-b border-gray-200 shrink-0">
-          <a-breadcrumb separator=">">
-            <a-breadcrumb-item>
-              <RouterLink
-                v-if="!isTopPage"
-                to="/wf-tops"
-                class="font-medium !text-gray-400 hover:!text-gray-400 hover:!bg-white"
-              >
-                トップページ
-              </RouterLink>
-              <span v-else class="text-black">トップページ</span>
-            </a-breadcrumb-item>
-
-            <a-breadcrumb-item v-if="!isTopPage && pageTitle">
-              <span class="text-black">{{ pageTitle }}</span>
-            </a-breadcrumb-item>
-          </a-breadcrumb>
-        </div>
+        <PageHeader />
 
         <div class="overflow-y-auto flex-1 p-6">
           <slot />

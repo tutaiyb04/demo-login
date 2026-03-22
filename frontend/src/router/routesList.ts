@@ -3,6 +3,7 @@ import ApprovedTasksView from "@/views/acceptance/ApprovedTasksView.vue";
 import ApplicationRegisterView from "@/views/apply/ApplicationRegisterView.vue";
 import CompleteListView from "@/views/apply/CompleteListView.vue";
 import MyTasksView from "@/views/apply/MyTasksView.vue";
+import CreatEditUser from "@/views/CreatEditUser.vue";
 import LoginView from "@/views/LoginView.vue";
 import ApplyDocListView from "@/views/management/ApplyDocListView.vue";
 import CompanyListView from "@/views/management/CompanyListView.vue";
@@ -37,6 +38,7 @@ export const routesList: RouteRecordRaw[] = [
     component: TopView,
     meta: {
       title: "トップページ",
+      description: "トップページです",
       layoutType: "admin",
       requiresAuth: true,
     },
@@ -46,7 +48,8 @@ export const routesList: RouteRecordRaw[] = [
     name: "users",
     component: UserView,
     meta: {
-      title: "ユーザーマスタ",
+      title: "ユーザー一覧",
+      description: "登録されたユーザーの一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -58,6 +61,7 @@ export const routesList: RouteRecordRaw[] = [
     component: ApplicationRegisterView,
     meta: {
       title: "申請書の新規作成",
+      description: "新しい申請書を作成します",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "application_menu",
@@ -69,6 +73,7 @@ export const routesList: RouteRecordRaw[] = [
     component: MyTasksView,
     meta: {
       title: "申請書一覧",
+      description: "自分が申請した申請書の一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "application_menu",
@@ -80,6 +85,7 @@ export const routesList: RouteRecordRaw[] = [
     component: CompleteListView,
     meta: {
       title: "完了した申請一覧",
+      description: "完了した申請書の一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "application_menu",
@@ -91,6 +97,7 @@ export const routesList: RouteRecordRaw[] = [
     component: ApprovedTasksView,
     meta: {
       title: "申請を承認",
+      description: "承認待ちの申請書一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "acceptance_menu",
@@ -102,6 +109,7 @@ export const routesList: RouteRecordRaw[] = [
     component: ApprovedListView,
     meta: {
       title: "承認済み一覧",
+      description: "承認済みの申請書一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "acceptance_menu",
@@ -113,6 +121,7 @@ export const routesList: RouteRecordRaw[] = [
     component: ApplyDocListView,
     meta: {
       title: "申請書マスタ一覧",
+      description: "登録された申請書マスタの一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -124,6 +133,7 @@ export const routesList: RouteRecordRaw[] = [
     component: CompanyListView,
     meta: {
       title: "会社マスタ",
+      description: "登録された会社の一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -135,6 +145,7 @@ export const routesList: RouteRecordRaw[] = [
     component: DepartmentListView,
     meta: {
       title: "部署マスタ",
+      description: "登録された部署の一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -146,6 +157,7 @@ export const routesList: RouteRecordRaw[] = [
     component: PositionListView,
     meta: {
       title: "役職マスタ",
+      description: "登録された役職の一覧です",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -157,6 +169,7 @@ export const routesList: RouteRecordRaw[] = [
     component: UserManagementView,
     meta: {
       title: "ユーザー一括登録",
+      description: "ユーザーを一括で登録します",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "admin_menu",
@@ -168,6 +181,7 @@ export const routesList: RouteRecordRaw[] = [
     component: FilesView,
     meta: {
       title: "ファイル一覧・編集",
+      description: "ファイルの一覧と編集を行います",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "register_menu",
@@ -179,6 +193,7 @@ export const routesList: RouteRecordRaw[] = [
     component: ApplyRouteListView,
     meta: {
       title: "申請ルート一覧・編集",
+      description: "申請ルートの一覧と編集を行います",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "register_menu",
@@ -190,6 +205,7 @@ export const routesList: RouteRecordRaw[] = [
     component: LatestNewsView,
     meta: {
       title: "お知らせ一覧・編集",
+      description: "お知らせの一覧と編集を行います",
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "register_menu",
@@ -204,6 +220,19 @@ export const routesList: RouteRecordRaw[] = [
       layoutType: "admin",
       requiresAuth: true,
       parentKey: "register_menu",
+      hidePageHeader: true,
+    },
+  },
+  {
+    path: "/user-new",
+    name: "user-new",
+    component: CreatEditUser,
+    meta: {
+      title: "ユーザマスタ登録",
+      description:
+        "ユーザを新規登録します。CSVをインポートする場合は「ユーザインポート」より設定してください。",
+      layoutType: "admin",
+      requiresAuth: true,
     },
   },
 ];

@@ -57,8 +57,8 @@ const isSumbitDisabled = computed(() => {
 
 <template>
   <div class="min-h-screen flex items-center justify-center bg-white">
-    <div class="w-[440px] max-w-full">
-      <h2 class="text-[24px] !font-bold text-center !mb-10 text-gray-800">
+    <section class="w-[440px] max-w-full">
+      <h2 class="text-[2.4rem] !font-bold text-center !mb-10 text-gray-800">
         ACF Baas Workflow
       </h2>
 
@@ -81,7 +81,7 @@ const isSumbitDisabled = computed(() => {
           ]"
         >
           <template #label>
-            <span class="text-[18px] !font-bold">メールアドレス</span>
+            <span class="text-[1.8rem] !font-bold">メールアドレス</span>
           </template>
           <a-input
             v-model:value="formState.username"
@@ -102,7 +102,7 @@ const isSumbitDisabled = computed(() => {
           class="!mb-11"
         >
           <template #label>
-            <span class="text-[18px] !font-bold">パスワード</span>
+            <span class="text-[1.8rem] !font-bold">パスワード</span>
           </template>
           <a-input-password
             v-model:value="formState.password"
@@ -127,7 +127,7 @@ const isSumbitDisabled = computed(() => {
               size="large"
               :loading="isLoading"
               :disabled="isSumbitDisabled"
-              class="w-[360px] !h-[45px] !text-[18px] !font-bold rounded-sm"
+              class="w-[360px] !h-[45px] !text-[1.8rem] !font-bold rounded-sm"
               :class="
                 isSumbitDisabled
                   ? '!bg-[#d8d8d8] !border-[#d8d8d8] !text-[#ffffff]'
@@ -143,12 +143,12 @@ const isSumbitDisabled = computed(() => {
       <div class="text-center mt-2">
         <a
           href="#"
-          class="text-sm text-[#2c7ebd] underline hover:text-[#23689b]"
+          class="text-[1.4rem] text-[#2c7ebd] underline hover:text-[#23689b]"
         >
           パスワードをお忘れの方
         </a>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 

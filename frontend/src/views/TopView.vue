@@ -1,10 +1,44 @@
 <script setup lang="ts">
+import type { TableColumnsType } from "ant-design-vue";
 import { reactive, ref } from "vue"; // Nhớ import ref
 import { useRouter } from "vue-router";
 
 const router = useRouter();
 
-const newList = [
+interface NewsItem {
+  id: number;
+  date: string;
+  title: string;
+}
+
+// 2. Định nghĩa Interface cho dữ liệu bảng My Task
+interface TaskRecord {
+  key: string;
+  status: string;
+  type: string;
+  title: string;
+  approver: string;
+  updatedAt: string;
+}
+
+// 3. Định nghĩa Interface cho dữ liệu bảng Approval Task
+interface ApprovalTaskRecord {
+  key: string;
+  applicationDate: string;
+  applicant: string;
+  type: string;
+  title: string;
+}
+
+// 4. Định nghĩa kiểu dữ liệu cho tham số sorter của Ant Design Table
+interface TableSorter {
+  column: any;
+  columnKey?: string;
+  field?: string;
+  order?: "ascend" | "descend" | null;
+}
+
+const newList = ref<NewsItem[]>([
   {
     id: 1,
     date: "2026/12/19 13:58",
@@ -15,9 +49,9 @@ const newList = [
     date: "2026/12/19 14:47",
     title: "Date is equalt to Date, difference in Time 5",
   },
-];
+]);
 
-const taskColumns = [
+const taskColumns: TableColumnsType = [
   { title: "ステータス", dataIndex: "status", key: "status", width: "10%" },
   { title: "申請書種別", dataIndex: "type", key: "type", width: "15%" },
   { title: "申請タイトル", dataIndex: "title", key: "title", width: "45%" },
@@ -32,7 +66,7 @@ const taskColumns = [
   },
 ];
 
-const approvalTaskColumns = [
+const approvalTaskColumns: TableColumnsType = [
   {
     title: "申請日",
     dataIndex: "applicationDate",
@@ -54,16 +88,29 @@ const pagination = reactive({
   pageSizeOptions: ["5", "10", "20", "50"],
 });
 
-const sortOrder = ref<string | null>(null);
+type SortOrder = "ascend" | "descend" | null;
 
-const approvalSortOrder = ref<string | null>(null);
+const sortOrder = ref<SortOrder>(null);
 
-const handleApprovalTableChange = (pag: any, filters: any, sorter: any) => {
-  approvalSortOrder.value = sorter.order || null;
+const approvalSortOrder = ref<SortOrder>(null);
+
+const handleApprovalTableChange = (
+  pag: unknown,
+  filters: unknown,
+  sorter: TableSorter | TableSorter[],
+) => {
+  // Đảm bảo lấy đúng object sorter nếu bị trả về mảng
+  const sorterObj = Array.isArray(sorter) ? sorter[0] : sorter;
+  approvalSortOrder.value = sorterObj?.order || null;
 };
 
-const handleTableChange = (pag: any, filters: any, sorter: any) => {
-  sortOrder.value = sorter.order || null;
+const handleTableChange = (
+  pag: any,
+  filters: unknown,
+  sorter: TableSorter | TableSorter[],
+) => {
+  const sorterObj = Array.isArray(sorter) ? sorter[0] : sorter;
+  sortOrder.value = sorterObj?.order || null;
 
   if (pag) {
     pagination.current = pag.current;
@@ -74,7 +121,7 @@ const handleTableChange = (pag: any, filters: any, sorter: any) => {
 const getTooltipText = (order: string | null) => {
   if (order === "descend") return "Click to sort ascending";
   if (order === "ascend") return "Cancel sorting";
-  return "Click to sort descending"; // Mặc định khi bằng null
+  return "Click to sort descending";
 };
 
 const goToAllNews = () => {
