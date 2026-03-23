@@ -48,7 +48,7 @@ export const routesList: RouteRecordRaw[] = [
     name: "users",
     component: UserView,
     meta: {
-      title: "ユーザー一覧",
+      title: "ユーザーマスタ",
       description: "登録されたユーザーの一覧です",
       layoutType: "admin",
       requiresAuth: true,

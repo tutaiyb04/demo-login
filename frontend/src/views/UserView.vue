@@ -13,15 +13,19 @@ interface UserRecord {
   key: string;
   userCode: string;
   lastName: string;
-  firstName: string;
+  lastNameKana: string;
   name: string;
   nameKana: string;
   departmentCode: string;
+  departmentName: string;
+  roleCode: string;
+  roleName: string;
   manager: string;
   searchCode: string;
   usage: string;
   email: string;
   staffCode: string;
+  remarks: string;
   otherName: string;
   lastLogin: string;
 }
@@ -49,30 +53,30 @@ const handleRegister = () => {
 };
 
 const columns: TableColumnsType = [
+  { title: "ユーザーID", dataIndex: "userCode", key: "userCode", width: 140 },
+  { title: "苗字", dataIndex: "lastName", key: "lastName", width: 120 },
   {
-    title: "ユーザーコード",
-    dataIndex: "userCode",
-    key: "userCode",
-    width: 140,
+    title: "仮名苗字",
+    dataIndex: "lastNameKana",
+    key: "lastNameKana",
+    width: 120,
   },
-  { title: "姓字", dataIndex: "lastName", key: "lastName", width: 100 },
-  { title: "名字", dataIndex: "firstName", key: "firstName", width: 100 },
-  { title: "名前", dataIndex: "name", key: "name", width: 140 },
-  { title: "姓名カナ", dataIndex: "nameKana", key: "nameKana", width: 160 },
+  { title: "名前", dataIndex: "name", key: "name", width: 120 },
+  { title: "仮名名前", dataIndex: "nameKana", key: "nameKana", width: 120 },
   {
     title: "部署コード",
     dataIndex: "departmentCode",
     key: "departmentCode",
     width: 130,
   },
-  { title: "管理者", dataIndex: "manager", key: "manager", width: 100 },
   {
-    title: "検索コード",
-    dataIndex: "searchCode",
-    key: "searchCode",
-    width: 130,
+    title: "部署名",
+    dataIndex: "departmentName",
+    key: "departmentName",
+    width: 180,
   },
-  { title: "使用先", dataIndex: "usage", key: "usage", width: 130 },
+  { title: "役割コード", dataIndex: "roleCode", key: "roleCode", width: 130 },
+  { title: "役割名", dataIndex: "roleName", key: "roleName", width: 130 },
   { title: "メールアドレス", dataIndex: "email", key: "email", width: 250 },
   {
     title: "スタッフコード",
@@ -80,20 +84,22 @@ const columns: TableColumnsType = [
     key: "staffCode",
     width: 140,
   },
-  { title: "他名", dataIndex: "otherName", key: "otherName", width: 100 },
+  { title: "備考", dataIndex: "remarks", key: "remarks", width: 180 },
   {
     title: "最終ログイン",
     dataIndex: "lastLogin",
     key: "lastLogin",
     width: 180,
   },
-  { key: "action", width: 100, fixed: "right" },
+  { key: "action", width: 100, fixed: "right", align: "center" },
 ];
 </script>
 
 <template>
   <section class="bg-white p-8 rounded-sm shadow-sm m-5">
-    <h2 class="text-[1.8rem] !font-bold text-[#333333] mb-6">組織マスタ管理</h2>
+    <div class="flex justify-between items-start mb-6">
+      <h2 class="text-[1.6rem] !font-bold text-[#333333] m-0">ユーザー検索</h2>
+    </div>
 
     <div class="flex gap-4 mb-4">
       <a-input
@@ -134,7 +140,6 @@ const columns: TableColumnsType = [
       :data-source="dataSource"
       :pagination="false"
       :scroll="{ x: 'max-content' }"
-      class="custom-table"
     >
       <template
         #bodyCell="{ column, record }: { column: any; record: UserRecord }"
@@ -178,17 +183,21 @@ const columns: TableColumnsType = [
   background-color: #1890ff !important;
   border-color: #1890ff !important;
 }
+
 :deep(.ant-table-thead > tr > th) {
-  background-color: #fafafa !important;
+  background-color: #ececec !important;
   color: #333333;
   font-weight: 700;
-  padding: 14px 16px !important;
   white-space: nowrap;
   border-bottom: 1px solid #f0f0f0 !important;
+  padding: 5px 16px !important;
 }
+
 :deep(.ant-table-thead > tr > th::before) {
-  display: none !important;
+  display: block !important;
+  background-color: rgba(0, 0, 0, 0.1) !important;
 }
+
 :deep(.ant-table-tbody > tr > td) {
   padding: 14px 16px !important;
   white-space: nowrap;

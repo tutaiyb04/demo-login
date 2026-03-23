@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import PageHeader from "@/components/PageHeader.vue";
-import { computed, onMounted, ref, watch } from "vue";
-import { RouterLink, useRoute, useRouter } from "vue-router";
+import { onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TableColumnsType } from "ant-design-vue";
-import { reactive, ref } from "vue"; // Nhớ import ref
+import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
@@ -11,7 +11,6 @@ interface NewsItem {
   title: string;
 }
 
-// 2. Định nghĩa Interface cho dữ liệu bảng My Task
 interface TaskRecord {
   key: string;
   status: string;
@@ -21,7 +20,6 @@ interface TaskRecord {
   updatedAt: string;
 }
 
-// 3. Định nghĩa Interface cho dữ liệu bảng Approval Task
 interface ApprovalTaskRecord {
   key: string;
   applicationDate: string;
@@ -30,7 +28,6 @@ interface ApprovalTaskRecord {
   title: string;
 }
 
-// 4. Định nghĩa kiểu dữ liệu cho tham số sorter của Ant Design Table
 interface TableSorter {
   column: any;
   columnKey?: string;
@@ -99,7 +96,6 @@ const handleApprovalTableChange = (
   filters: unknown,
   sorter: TableSorter | TableSorter[],
 ) => {
-  // Đảm bảo lấy đúng object sorter nếu bị trả về mảng
   const sorterObj = Array.isArray(sorter) ? sorter[0] : sorter;
   approvalSortOrder.value = sorterObj?.order || null;
 };
@@ -413,11 +409,11 @@ const goToApprovalTasks = () => {
 }
 
 :deep(.ant-table-thead > tr > th) {
-  background-color: #ebebeb !important;
+  background-color: #ececec !important;
   color: #333333;
   font-weight: 600;
   border-bottom: none !important;
-  padding: 14px 16px !important;
+  padding: 6px 16px !important;
 }
 
 :deep(.ant-table-thead > tr > th::before) {
