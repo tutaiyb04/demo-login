@@ -4,6 +4,7 @@ import { computed } from "@vue/reactivity";
 import { message } from "ant-design-vue";
 import { reactive } from "vue";
 import { useLoading } from "@/composables/useLoading";
+import api from "@/utils/axios";
 
 message.config({
   duration: 10,
@@ -26,24 +27,28 @@ const formState = reactive<FormState>({
   remember: false,
 });
 
-const onFinish = (values: FormState) => {
+const onFinish = async (values: FormState) => {
   showLoading();
 
-  setTimeout(() => {
+  const payload = {
+    username: values.username,
+    password: values.password,
+  };
+
+  try {
+    const response = await api.post("/auth/login", payload);
+
+    localStorage.setItem("access_token", response.data.access_token);
+    localStorage.setItem("loggedInUser", JSON.stringify(response.data.user));
+
+    message.success("ログインに成功しました。");
+    router.push("/wf-tops");
+  } catch (error) {
+    console.error("Login failed:", error);
+    message.error("ログインIDまたはパスワードが間違っています。");
+  } finally {
     hideLoading();
-
-    const mockUsername = "tutaiyb2411";
-    const mockPassword = "123";
-
-    if (values.username === mockUsername && values.password === mockPassword) {
-      localStorage.setItem("loggedInUser", values.username);
-
-      message.success("ログインに成功しました。");
-      router.push("/wf-tops");
-    } else {
-      message.error("ログインIDまたはパスワードが間違っています。");
-    }
-  }, 1500);
+  }
 };
 
 const onFinishFailed = (errorInfo: any) => {

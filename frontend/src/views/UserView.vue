@@ -5,55 +5,30 @@ import { useRouter } from "vue-router";
 import type { UserRecord } from "@/types/user";
 import UserSearchForm from "@/components/userList/UserSearchForm.vue";
 import UserTable from "@/components/userList/UserTable.vue";
+import api from "@/utils/axios";
+import { message } from "ant-design-vue";
 
 const router = useRouter();
 
 const searchQuery = ref<string>("");
-const searchResultsCount = ref<number>(2); // Tạm fix cứng bằng độ dài mảng mock
+const searchResultsCount = ref<number>(0);
 
-// Mock Data
-const dataSource = ref<UserRecord[]>([
-  {
-    key: "1",
-    userCode: "U001",
-    lastName: "Nguyễn",
-    lastNameKana: "グエン",
-    name: "Văn A",
-    nameKana: "ヴァン A",
-    departmentCode: "D01",
-    departmentName: "IT Department",
-    roleCode: "R01",
-    roleName: "Admin",
-    manager: "Trần Văn Sếp",
-    searchCode: "S001",
-    usage: "Active",
-    email: "nguyenvana@example.com",
-    staffCode: "EMP-001",
-    remarks: "Nhân viên xuất sắc",
-    otherName: "A Nguyen",
-    lastLogin: "2026/03/23 08:30:00",
-  },
-  {
-    key: "2",
-    userCode: "U002",
-    lastName: "Trần",
-    lastNameKana: "チャン",
-    name: "Thị B",
-    nameKana: "ティ B",
-    departmentCode: "D02",
-    departmentName: "HR Department",
-    roleCode: "R02",
-    roleName: "User",
-    manager: "Lê Văn Quản Lý",
-    searchCode: "S002",
-    usage: "Inactive",
-    email: "tranthib@example.com",
-    staffCode: "EMP-002",
-    remarks: "Nhân viên mới",
-    otherName: "B Tran",
-    lastLogin: "2026/03/22 17:00:00",
-  },
-]);
+const dataSource = ref<UserRecord[]>([]);
+
+const fetchUsers = async () => {
+  try {
+    const response = await api.get("/users");
+
+    dataSource.value = response.data;
+    searchResultsCount.value = response.data.length;
+  } catch (error) {
+    console.error("Lỗi lấy danh sách user:", error);
+    message.error(
+      "Lỗi tải dữ liệu. Có thể Token đã hết hạn, vui lòng đăng nhập lại!",
+    );
+    router.push("/");
+  }
+};
 
 const handleSearch = () => {
   console.log("Tiến hành tìm kiếm với từ khóa:", searchQuery.value);
@@ -95,7 +70,7 @@ const handleDeleteUser = (userCode: string) => {
     </div>
 
     <UserTable
-      :data-source="dataSource"
+      :data-source="[]"
       @edit="handleEditUser"
       @delete="handleDeleteUser"
     />

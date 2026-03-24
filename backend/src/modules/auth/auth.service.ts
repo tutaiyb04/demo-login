@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
@@ -25,7 +26,11 @@ export class AuthService {
       throw new UnauthorizedException('Username hoặc mật khẩu không chính xác');
     }
 
-    const payload = { sub: user.id, username: user.username, role: user.role };
+    const payload = {
+      sub: user.id,
+      username: user.username,
+      role: user.roleName,
+    };
 
     return {
       message: 'Đăng nhập thành công',
@@ -34,7 +39,7 @@ export class AuthService {
         id: user.id,
         username: user.username,
         name: user.name,
-        role: user.role,
+        role: user.roleName,
       },
     };
   }

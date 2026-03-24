@@ -14,25 +14,42 @@ export class UsersService {
       (u) => u.username === createUserDto.username,
     );
     if (isExist) {
-      throw new Error('Email đã tồn tại');
+      throw new Error('Username đã tồn tại');
     }
+
+    const newId = Date.now();
 
     const saltRounds = 10;
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
     const newUser = {
-      id: Date.now(),
-      ...createUserDto,
+      id: newId,
+      username: createUserDto.username,
       password: hashedPassword,
-      role: 'USER',
+      email: createUserDto.email,
+
+      // 2. Điền giá trị mặc định cho các trường phục vụ Frontend Table
+      key: newId.toString(),
+      userCode: `U${newId}`,
+      lastName: createUserDto.name, // Lấy name từ DTO nhét tạm vào lastName
+      lastNameKana: '',
+      name: '',
+      nameKana: '',
+      departmentCode: '',
+      departmentName: 'N/A',
+      roleCode: 'USER',
+      roleName: 'USER',
+      staffCode: '',
+      remarks: 'Tài khoản mới tạo',
+      lastLogin: 'Chưa đăng nhập',
     };
     this.users.push(newUser);
     return {
       id: newUser.id,
       email: newUser.email,
       name: newUser.name,
-      role: newUser.role,
+      role: newUser.roleName,
     };
   }
 
