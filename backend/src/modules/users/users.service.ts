@@ -28,20 +28,20 @@ export class UsersService {
       username: createUserDto.username,
       password: hashedPassword,
       email: createUserDto.email,
-
-      // 2. Điền giá trị mặc định cho các trường phục vụ Frontend Table
       key: newId.toString(),
-      userCode: `U${newId}`,
-      lastName: createUserDto.name, // Lấy name từ DTO nhét tạm vào lastName
-      lastNameKana: '',
-      name: '',
-      nameKana: '',
-      departmentCode: '',
-      departmentName: 'N/A',
-      roleCode: 'USER',
-      roleName: 'USER',
-      staffCode: '',
-      remarks: 'Tài khoản mới tạo',
+      userCode: createUserDto.username,
+      lastName: createUserDto.lastName || '',
+      lastNameKana: createUserDto.lastNameKana || '',
+      name: createUserDto.name || '',
+      nameKana: createUserDto.nameKana || '',
+      departmentCode: createUserDto.departmentCode || '',
+      departmentName:
+        createUserDto.departmentCode === 'ACFD001' ? '開発部' : '営業部',
+
+      roleCode: createUserDto.roleCode || 'USER',
+      roleName: createUserDto.roleCode === 'ADMIN' ? '管理者' : '一般ユーザー',
+      staffCode: createUserDto.staffCode || '',
+      remarks: createUserDto.remarks || 'Tài khoản mới tạo',
       lastLogin: 'Chưa đăng nhập',
     };
     this.users.push(newUser);
@@ -57,8 +57,8 @@ export class UsersService {
     return this.users;
   }
 
-  findOne(id: number) {
-    const user = this.users.find((u) => u.id === id);
+  findOne(id: string) {
+    const user = this.users.find((u) => u.userCode === id);
     if (!user) throw new NotFoundException(`Không tìm thấy user với id ${id}`);
     return user;
   }
@@ -72,19 +72,17 @@ export class UsersService {
     return this.users.find((u) => u.username === username);
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    const userIndex = this.users.findIndex((u) => u.id === id);
-    if (userIndex === -1)
-      throw new NotFoundException(`Không tìm thấy user với id ${id}`);
+  update(id: string, updateUserDto: UpdateUserDto) {
+    const userIndex = this.users.findIndex((u) => u.userCode === id);
+    if (userIndex === -1) throw new NotFoundException(`Không tìm thấy user`);
 
     this.users[userIndex] = { ...this.users[userIndex], ...updateUserDto };
     return this.users[userIndex];
   }
 
-  remove(id: number) {
-    const userIndex = this.users.findIndex((u) => u.id === id);
-    if (userIndex === -1)
-      throw new NotFoundException(`Không tìm thấy user với id ${id}`);
+  remove(id: string) {
+    const userIndex = this.users.findIndex((u) => u.userCode === id);
+    if (userIndex === -1) throw new NotFoundException(`Không tìm thấy user`);
 
     const deletedUser = this.users.splice(userIndex, 1);
     return deletedUser[0];

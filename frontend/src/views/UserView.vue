@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 import type { UserRecord } from "@/types/user";
@@ -26,9 +26,12 @@ const fetchUsers = async () => {
     message.error(
       "Lỗi tải dữ liệu. Có thể Token đã hết hạn, vui lòng đăng nhập lại!",
     );
-    router.push("/");
   }
 };
+
+onMounted(() => {
+  fetchUsers();
+});
 
 const handleSearch = () => {
   console.log("Tiến hành tìm kiếm với từ khóa:", searchQuery.value);
@@ -46,8 +49,16 @@ const handleEditUser = (userCode: string) => {
   });
 };
 
-const handleDeleteUser = (userCode: string) => {
-  console.log("Xác nhận xóa user:", userCode);
+const handleDeleteUser = async (userCode: string) => {
+  if (confirm("Bạn có chắc chắn muốn xóa user này?")) {
+    try {
+      await api.delete(`/users/${userCode}`);
+      message.success("ユーザーログイン成功");
+      fetchUsers();
+    } catch (error) {
+      message.error("ユーザー削除時にエラーが発生しました");
+    }
+  }
 };
 </script>
 
@@ -70,7 +81,7 @@ const handleDeleteUser = (userCode: string) => {
     </div>
 
     <UserTable
-      :data-source="[]"
+      :data-source="dataSource"
       @edit="handleEditUser"
       @delete="handleDeleteUser"
     />

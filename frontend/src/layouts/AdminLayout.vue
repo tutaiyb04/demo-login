@@ -26,7 +26,8 @@ watch(
 onMounted(() => {
   const user = localStorage.getItem("loggedInUser");
   if (user) {
-    loggedInUser.value = user;
+    const userObj = JSON.parse(user);
+    loggedInUser.value = userObj.username;
   } else {
     loggedInUser.value = "TAITTMANAGER";
   }

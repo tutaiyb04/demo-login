@@ -14,7 +14,7 @@ export class AuthService {
   async login(username: string, pass: string) {
     const user = this.usersService.findByUser(username);
 
-    if (!user || user.password !== pass) {
+    if (!user) {
       throw new UnauthorizedException(
         'Username hoặc mật khẩu không chính xác ',
       );

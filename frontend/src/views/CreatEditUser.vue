@@ -7,6 +7,7 @@ import type { UserFormState } from "@/types/user";
 import { message } from "ant-design-vue";
 import { computed, onMounted, reactive, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import api from "@/utils/axios";
 
 const router = useRouter();
 const route = useRoute();
@@ -60,39 +61,24 @@ const isSaveDisabled = computed(() => {
 const fetchUserData = async (id: string) => {
   showLoading();
   try {
-    console.log("Đang lấy dữ liệu cho User ID:", id);
+    const response = await api.get(`/users/${id}`);
+    const user = response.data;
 
-    setTimeout(() => {
-      if (id === "U001") {
-        formState.userId = "U001";
-        formState.lastName = "Nguyễn";
-        formState.firstName = "Văn A";
-        formState.lastNameKana = "グエン";
-        formState.firstNameKana = "ヴァン A";
-        formState.departmentCode = "D01";
-        formState.positionCode = "P01";
-        formState.email = "nguyenvana@example.com";
-        formState.startDate = dayjs("2025-01-01");
-        formState.staffCode = "EMP-001";
-        formState.remarks = "Nhân viên xuất sắc";
-        formState.role = "R01";
-        formState.isApprover = true;
-        formState.canProxyApply = false;
-        formState.canProxyApprove = true;
-      } else if (id === "U002") {
-        formState.userId = "U002";
-        formState.lastName = "Trần";
-        formState.firstName = "Thị B";
-        formState.lastNameKana = "チャン";
-        formState.firstNameKana = "ティ B";
-        formState.email = "tranthib@example.com";
-        formState.startDate = dayjs("2026-02-15");
-      }
+    formState.userId = user.userCode;
+    formState.lastName = user.lastName;
+    formState.firstName = user.name;
+    formState.lastNameKana = user.lastNameKana;
+    formState.firstNameKana = user.nameKana;
+    formState.departmentCode = user.departmentCode;
+    formState.email = user.email;
+    formState.startDate = dayjs();
+    formState.staffCode = user.staffCode;
+    formState.remarks = user.remarks;
+    formState.role = user.roleCode;
 
-      hideLoading();
-    }, 500);
+    hideLoading();
   } catch (error) {
-    message.error("Lỗi khi tải dữ liệu người dùng!");
+    message.error("ユーザーデータの読み込み中にエラーが発生しました");
     hideLoading();
   }
 };
@@ -105,33 +91,39 @@ onMounted(() => {
 
 const handleSubmit = async () => {
   try {
-    // Validate cơ bản (Ant Design Form tự lo phần hiển thị lỗi nếu setup rule, ở đây mình check tay nhanh hoặc dùng a-form rules)
     if (!formState.userId || !formState.lastName || !formState.firstName) {
-      message.warning("Vui lòng nhập đầy đủ các trường bắt buộc.");
+      message.warning("必須項目はすべてご記入ください。");
       return;
     }
 
     showLoading();
     const payload = {
-      ...formState,
-      startDate: formState.startDate
-        ? formState.startDate.format("YYYY-MM-DD")
-        : null,
+      username: formState.userId,
+      password: "123",
+      email: formState.email,
+      name: formState.firstName,
+      lastName: formState.lastName,
+      lastNameKana: formState.lastNameKana,
+      nameKana: formState.firstNameKana,
+      departmentCode: formState.departmentCode,
+      staffCode: formState.staffCode,
+      remarks: formState.remarks,
+      roleCode: formState.role,
     };
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
-
     if (isEditMode.value) {
-      console.log("Cập nhật dữ liệu:", payload);
+      await api.patch(`/users/${userIdToEdit.value}`, payload);
       message.success("Cập nhật người dùng thành công!");
     } else {
-      console.log("Tạo mới dữ liệu:", payload);
+      await api.post("/users", payload);
       message.success("Tạo người dùng thành công!");
     }
 
     router.push("/users");
-  } catch (error) {
-    message.error("Có lỗi xảy ra khi lưu dữ liệu!");
+  } catch (error: any) {
+    message.error(
+      error.response?.data?.message || "Có lỗi xảy ra khi lưu dữ liệu!",
+    );
   } finally {
     hideLoading();
   }
