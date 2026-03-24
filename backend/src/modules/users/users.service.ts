@@ -3,25 +3,37 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { MockUsers } from '../../common/mock/db.mock';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
   private users = MockUsers; // Load Database giả
 
-  create(createUserDto: CreateUserDto) {
-    // Check xem email đã tồn tại chưa
-    const isExist = this.users.find((u) => u.email === createUserDto.email);
+  async create(createUserDto: CreateUserDto) {
+    const isExist = this.users.find(
+      (u) => u.username === createUserDto.username,
+    );
     if (isExist) {
-      throw new Error('Email đã tồn tại'); // NestJS sẽ tự bắt lỗi này
+      throw new Error('Email đã tồn tại');
     }
 
+    const saltRounds = 10;
+    const salt = await bcrypt.genSalt(saltRounds);
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
     const newUser = {
-      id: Date.now(), // Tạo ID ngẫu nhiên
+      id: Date.now(),
       ...createUserDto,
-      role: 'USER', // Mặc định role
+      password: hashedPassword,
+      role: 'USER',
     };
     this.users.push(newUser);
-    return newUser;
+    return {
+      id: newUser.id,
+      email: newUser.email,
+      name: newUser.name,
+      role: newUser.role,
+    };
   }
 
   findAll() {
@@ -37,6 +49,10 @@ export class UsersService {
   findByEmail(email: string) {
     // Hàm này rất quan trọng để bài sau làm Login
     return this.users.find((u) => u.email === email);
+  }
+
+  findByUser(username: string) {
+    return this.users.find((u) => u.username === username);
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {
