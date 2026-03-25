@@ -23,6 +23,25 @@ export class UsersService {
     const salt = await bcrypt.genSalt(saltRounds);
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
+    let mappedRoleName = '一般ユーザー'; // Giá trị mặc định
+    switch (createUserDto.roleCode) {
+      case 'admin':
+        mappedRoleName = '管理者';
+        break;
+      case 'admin1':
+        mappedRoleName = '管理者1';
+        break;
+      case 'admin2':
+        mappedRoleName = '管理者2';
+        break;
+    }
+
+    // 2. Dịch Department Code thành Department Name
+    let mappedDeptName = '';
+    if (createUserDto.departmentCode === 'ACFD001') {
+      mappedDeptName = 'ACFD001 name';
+    }
+
     const newUser = {
       id: newId,
       username: createUserDto.username,
@@ -35,11 +54,20 @@ export class UsersService {
       name: createUserDto.name || '',
       nameKana: createUserDto.nameKana || '',
       departmentCode: createUserDto.departmentCode || '',
-      departmentName:
-        createUserDto.departmentCode === 'ACFD001' ? '開発部' : '営業部',
-
+      departmentName: mappedDeptName,
+      positionCode: createUserDto.positionCode || '',
+      positionName:
+        createUserDto.positionCode === 'P01'
+          ? 'Trưởng phòng'
+          : createUserDto.positionCode === 'P02'
+            ? 'Nhân viên'
+            : '',
+      startDate: createUserDto.startDate || '',
+      isApprover: createUserDto.isApprover || false,
+      canProxyApply: createUserDto.canProxyApply || false,
+      canProxyApprove: createUserDto.canProxyApprove || false,
       roleCode: createUserDto.roleCode || 'USER',
-      roleName: createUserDto.roleCode === 'ADMIN' ? '管理者' : '一般ユーザー',
+      roleName: mappedRoleName,
       staffCode: createUserDto.staffCode || '',
       remarks: createUserDto.remarks || 'Tài khoản mới tạo',
       lastLogin: 'Chưa đăng nhập',

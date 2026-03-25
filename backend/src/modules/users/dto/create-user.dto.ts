@@ -1,5 +1,6 @@
 // src/modules/users/dto/create-user.dto.ts
 import {
+  IsBoolean,
   IsEmail,
   IsNotEmpty,
   IsOptional,
@@ -23,8 +24,6 @@ export class CreateUserDto {
   @IsNotEmpty({ message: 'Tên không được để trống' })
   name: string;
 
-  // --- THÊM CÁC TRƯỜNG MỚI DƯỚI ĐÂY ---
-
   @IsString()
   @IsOptional()
   lastName?: string;
@@ -43,6 +42,14 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
+  positionCode?: string;
+
+  @IsString()
+  @IsOptional()
+  startDate?: string;
+
+  @IsString()
+  @IsOptional()
   roleCode?: string;
 
   @IsString()
@@ -52,4 +59,16 @@ export class CreateUserDto {
   @IsString()
   @IsOptional()
   remarks?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isApprover?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  canProxyApply?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  canProxyApprove: boolean;
 }

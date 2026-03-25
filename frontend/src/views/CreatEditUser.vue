@@ -70,11 +70,15 @@ const fetchUserData = async (id: string) => {
     formState.lastNameKana = user.lastNameKana;
     formState.firstNameKana = user.nameKana;
     formState.departmentCode = user.departmentCode;
+    formState.positionCode = user.positionCode || null;
     formState.email = user.email;
-    formState.startDate = dayjs();
+    formState.startDate = user.startDate ? dayjs(user.startDate) : null;
     formState.staffCode = user.staffCode;
     formState.remarks = user.remarks;
     formState.role = user.roleCode;
+    formState.isApprover = user.isApprover || false;
+    formState.canProxyApply = user.canProxyApply || false;
+    formState.canProxyApprove = user.canProxyApprove || false;
 
     hideLoading();
   } catch (error) {
@@ -106,9 +110,16 @@ const handleSubmit = async () => {
       lastNameKana: formState.lastNameKana,
       nameKana: formState.firstNameKana,
       departmentCode: formState.departmentCode,
+      positionCode: formState.positionCode,
+      startDate: formState.startDate
+        ? formState.startDate.format("YYYY-MM-DD")
+        : null,
       staffCode: formState.staffCode,
       remarks: formState.remarks,
       roleCode: formState.role,
+      isApprover: formState.isApprover,
+      canProxyApply: formState.canProxyApply,
+      canProxyApprove: formState.canProxyApprove,
     };
 
     if (isEditMode.value) {

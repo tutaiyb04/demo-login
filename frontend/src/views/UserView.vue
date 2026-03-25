@@ -53,10 +53,16 @@ const handleDeleteUser = async (userCode: string) => {
   if (confirm("Bạn có chắc chắn muốn xóa user này?")) {
     try {
       await api.delete(`/users/${userCode}`);
-      message.success("ユーザーログイン成功");
-      fetchUsers();
+
+      dataSource.value = dataSource.value.filter(
+        (user) => user.userCode !== userCode,
+      );
+
+      message.success("ユーザーの削除に成功しました");
     } catch (error) {
+      console.error("Lỗi khi xóa:", error);
       message.error("ユーザー削除時にエラーが発生しました");
+      fetchUsers();
     }
   }
 };

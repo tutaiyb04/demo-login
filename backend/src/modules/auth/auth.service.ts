@@ -15,15 +15,13 @@ export class AuthService {
     const user = this.usersService.findByUser(username);
 
     if (!user) {
-      throw new UnauthorizedException(
-        'Username hoặc mật khẩu không chính xác ',
-      );
+      throw new UnauthorizedException('Username không chính xác ');
     }
 
     const isMatch = await bcrypt.compare(pass, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('Username hoặc mật khẩu không chính xác');
+      throw new UnauthorizedException('Mật khẩu không chính xác');
     }
 
     const payload = {
