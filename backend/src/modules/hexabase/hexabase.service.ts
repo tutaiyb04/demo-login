@@ -49,10 +49,26 @@ export class HexabaseService {
           password: password,
         }),
       );
-      console.log(response);
+
       return response.data.token;
     } catch (error) {
       throw this.handleError(error, 'Đăng nhập Hexabase thất bại');
+    }
+  }
+
+  async logout(token: string): Promise<any> {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}logout`,
+          {},
+          { headers: this.getHeaders(token) },
+        ),
+      );
+
+      return response.data;
+    } catch (error) {
+      console.error('Hexabase logout error', error.message);
     }
   }
 
@@ -66,27 +82,6 @@ export class HexabaseService {
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Không thể lấy thông tin user từ Hexabase');
-    }
-  }
-
-  async createItem(
-    projectId: string,
-    datastoreId: string,
-    payload: any,
-    token: string,
-  ) {
-    try {
-      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/new`;
-      const response = await firstValueFrom(
-        this.httpService.post(
-          url,
-          { item: payload },
-          { headers: this.getHeaders(token) },
-        ),
-      );
-      return response.data;
-    } catch (error) {
-      this.handleError(error, 'Không thể tạo dữ liệu mới trên Hexabase');
     }
   }
 }
