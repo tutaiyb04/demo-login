@@ -84,4 +84,47 @@ export class HexabaseService {
       throw this.handleError(error, 'Không thể lấy thông tin user từ Hexabase');
     }
   }
+
+  async createWorkspaceUser(userData: any, token: string) {
+    try {
+      const userPayload = {
+        email: userData.email,
+        password: userData.password,
+        user_code: userData.username,
+        name: `${userData.lastName} ${userData.firstName}`.trim(),
+      };
+
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}users`,
+          { user: userPayload },
+          { headers: this.getHeaders(token) },
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể tạo tài khoản trên Workspace');
+    }
+  }
+
+  async createItem(
+    projectId: string,
+    datastoreId: string,
+    payload: any,
+    token: string,
+  ) {
+    try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/new`;
+      const response = await firstValueFrom(
+        this.httpService.post(
+          url,
+          { item: payload },
+          { headers: this.getHeaders(token) },
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể lưu dữ liệu vào Datastore');
+    }
+  }
 }
