@@ -17,7 +17,7 @@ export class CreateUserDto {
   username: string;
 
   @IsString()
-  @MinLength(3, { message: 'Password phải có ít nhất 3 ký tự' })
+  @IsOptional()
   password: string;
 
   @IsString()

@@ -4,10 +4,14 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { HexabaseService } from '../hexabase/hexabase.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class UsersService {
-  constructor(private hexabaseService: HexabaseService) {}
+  constructor(
+    private hexabaseService: HexabaseService,
+    private configService: ConfigService,
+  ) {}
 
   async create(createUserDto: CreateUserDto, hxbToken: any) {
     const workspaceUser = await this.hexabaseService.createWorkspaceUser(
@@ -35,8 +39,10 @@ export class UsersService {
       workspaceUserId: workspaceUser.id,
     };
 
-    const PROJECT_ID = '69c38776aef0277b05ab6220';
-    const DATASTORE_ID = '69c48d493ad73cf404e2bc5c';
+    const PROJECT_ID =
+      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
+    const DATASTORE_ID =
+      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
 
     const result = await this.hexabaseService.createItem(
       PROJECT_ID,
