@@ -1,15 +1,22 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class HexabaseService {
-  private readonly baseUrl = process.env.HEXABASE_API_URL;
+  constructor(
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  constructor(private readonly httpService: HttpService) {}
+  private get baseUrl(): string {
+    return this.configService.get<string>('HEXABASE_API_URL') || '';
+  }
 
   private getHeaders(token?: string) {
     const headers: any = { 'Content-Type': 'application/json' };
@@ -22,7 +29,6 @@ export class HexabaseService {
   }
 
   private handleError(error: any, defaultMessage: string): HttpException {
-    console.error(error.response?.data || error.message);
     if (error.response) {
       return new HttpException(
         error.response.data.error || defaultMessage,
@@ -37,9 +43,8 @@ export class HexabaseService {
 
   async login(username: string, password: string): Promise<string> {
     try {
-      console.log(this.baseUrl);
       const response = await firstValueFrom(
-        this.httpService.post(`https://api.hexabase.com/api/v0/login`, {
+        this.httpService.post(`${this.baseUrl}login`, {
           user_code: username,
           password: password,
         }),
@@ -54,7 +59,7 @@ export class HexabaseService {
   async getUserInfo(token: string) {
     try {
       const response = await firstValueFrom(
-        this.httpService.get(`${this.baseUrl}/userinfo`, {
+        this.httpService.get(`${this.baseUrl}userinfo`, {
           headers: this.getHeaders(token),
         }),
       );
@@ -71,12 +76,12 @@ export class HexabaseService {
     token: string,
   ) {
     try {
-      const url = `${this.baseUrl}/applications/${projectId}/datastores/${datastoreId}/items/new`;
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/new`;
       const response = await firstValueFrom(
         this.httpService.post(
           url,
-          { item: payload }, // Payload dữ liệu
-          { headers: this.getHeaders(token) }, // Nhét token vào đây
+          { item: payload },
+          { headers: this.getHeaders(token) },
         ),
       );
       return response.data;
