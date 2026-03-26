@@ -22,6 +22,7 @@ export class HexabaseService {
   }
 
   private handleError(error: any, defaultMessage: string): HttpException {
+    console.error(error.response?.data || error.message);
     if (error.response) {
       return new HttpException(
         error.response.data.error || defaultMessage,
@@ -36,15 +37,30 @@ export class HexabaseService {
 
   async login(username: string, password: string): Promise<string> {
     try {
+      console.log(this.baseUrl);
       const response = await firstValueFrom(
-        this.httpService.post(`${this.baseUrl}/login`, {
+        this.httpService.post(`https://api.hexabase.com/api/v0/login`, {
           user_code: username,
           password: password,
         }),
       );
+      console.log(response);
       return response.data.token;
     } catch (error) {
       throw this.handleError(error, 'Đăng nhập Hexabase thất bại');
+    }
+  }
+
+  async getUserInfo(token: string) {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.baseUrl}/userinfo`, {
+          headers: this.getHeaders(token),
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể lấy thông tin user từ Hexabase');
     }
   }
 

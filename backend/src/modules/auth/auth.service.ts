@@ -8,8 +8,12 @@ export class AuthService {
 
   async login(username: string, password: string) {
     const token = await this.hexabaseService.login(username, password);
+
+    const user = await this.hexabaseService.getUserInfo(token);
+
     return {
       access_token: token,
+      user: user,
     };
   }
 }

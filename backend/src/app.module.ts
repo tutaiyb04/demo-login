@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import { ConfigModule } from '@nestjs/config';
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { UsersModule } from './modules/users/users.module';
@@ -8,7 +11,12 @@ import { AppService } from './app.service';
 import { HexabaseModule } from './modules/hexabase/hexabase.module';
 
 @Module({
-  imports: [UsersModule, AuthModule, HexabaseModule],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    UsersModule,
+    AuthModule,
+    HexabaseModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,
