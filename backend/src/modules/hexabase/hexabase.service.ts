@@ -94,21 +94,30 @@ export class HexabaseService {
     }
   }
 
-  async createWorkspaceUser(userData: any, token: string) {
+  async createWorkspaceUser(
+    email: string,
+    g_id: string,
+    username: string,
+    user_code: string,
+    tmp_password: string,
+    invitor_id: string,
+    token: string,
+  ) {
     try {
+      const payload = {
+        email,
+        g_id,
+        username,
+        user_code,
+        no_confirm_email: true,
+        tmp_password,
+        invitor_id,
+      };
+
       const response = await firstValueFrom(
-        this.httpService.post(
-          `${this.baseUrl}users`,
-          {
-            email: userData.email,
-            g_id: userData.g_id,
-            username: userData.firstName,
-            user_code: userData.username,
-            no_confirm_email: true,
-            tmp_password: userData.password,
-          },
-          { headers: this.getHeaders(token) },
-        ),
+        this.httpService.post(`${this.baseUrl}users`, payload, {
+          headers: this.getHeaders(token),
+        }),
       );
       return response.data;
     } catch (error) {
@@ -116,30 +125,44 @@ export class HexabaseService {
     }
   }
 
-  async addUserToWorkspace(
-    workspaceId: string,
-    payload: {
-      email: string;
-      g_id: string;
-      username?: string;
-      user_code?: string;
-      tmp_password?: string;
-      no_confirm_email?: boolean;
-      send_password_to_email?: boolean;
-    },
+  async createItem(
+    projectId: string,
+    datastoreId: string,
+    payload: any,
     token: string,
   ) {
     try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/new`;
       const response = await firstValueFrom(
         this.httpService.post(
-          `${this.baseUrl}workspaces/${workspaceId}/users`,
-          { users: [payload] },
+          url,
+          { item: payload },
           { headers: this.getHeaders(token) },
         ),
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể thêm user vào workspace/group');
+      throw this.handleError(error, 'Không thể lưu dữ liệu vào Datastore');
+    }
+  }
+
+  async searchItems(projectId: string, datastoreId: string, token: string) {
+    try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/search`;
+      const response = await firstValueFrom(
+        this.httpService.post(
+          url,
+          {
+            page: 1,
+            per_page: 100,
+            use_display_id: true,
+          },
+          { headers: this.getHeaders(token) },
+        ),
+      );
+      return response.data.items;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể lấy danh sách từ Datastore');
     }
   }
 
@@ -176,27 +199,6 @@ export class HexabaseService {
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Không thể gửi yêu cầu reset mật khẩu');
-    }
-  }
-
-  async createItem(
-    projectId: string,
-    datastoreId: string,
-    payload: any,
-    token: string,
-  ) {
-    try {
-      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/new`;
-      const response = await firstValueFrom(
-        this.httpService.post(
-          url,
-          { item: payload },
-          { headers: this.getHeaders(token) },
-        ),
-      );
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error, 'Không thể lưu dữ liệu vào Datastore');
     }
   }
 }

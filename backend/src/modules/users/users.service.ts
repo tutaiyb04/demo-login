@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -15,8 +17,29 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto, hxbToken: any) {
+    const PROJECT_ID =
+      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
+    const DATASTORE_ID =
+      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
+
+    const WORKSPACE_ID =
+      this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
+    const GROUP_ID = this.configService.get<string>('HEXABASE_GROUP_ID') || '';
+
+    const adminInfo = await this.hexabaseService.getUserInfo(hxbToken);
+    const invitorId = adminInfo.u_id || adminInfo.id;
+
+    const fullName =
+      `${createUserDto.lastName || ''} ${createUserDto.firstName || ''}`.trim();
+    const password = createUserDto.password || 'Acf@Password2026';
+
     const workspaceUser = await this.hexabaseService.createWorkspaceUser(
-      createUserDto,
+      createUserDto.email,
+      GROUP_ID,
+      fullName,
+      createUserDto.username,
+      password,
+      invitorId,
       hxbToken,
     );
 
@@ -33,35 +56,13 @@ export class UsersService {
       staffCode: createUserDto.staffCode,
       remarks: createUserDto.remarks,
       role: createUserDto.roleCode,
-      isApprover: createUserDto.isApprover,
-      canProxyApply: createUserDto.canProxyApply,
-      canProxyApprove: createUserDto.canProxyApprove,
-      // Lưu lại ID của user trên workspace để sau này dễ truy xuất
-      workspaceUserId: workspaceUser.id,
+      isApprover: String(createUserDto.isApprover) === 'true' ? ['true'] : [],
+      canProxyApply:
+        String(createUserDto.canProxyApply) === 'true' ? ['true'] : [],
+      canProxyApprove:
+        String(createUserDto.canProxyApprove) === 'true' ? ['true'] : [],
+      workspaceUserId: workspaceUser.u_id || workspaceUser.id,
     };
-
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-
-    const WORKSPACE_ID =
-      this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
-    const GROUP_ID = this.configService.get<string>('HEXABASE_GROUP_ID') || '';
-
-    await this.hexabaseService.addUserToWorkspace(
-      WORKSPACE_ID,
-      {
-        email: createUserDto.email,
-        g_id: GROUP_ID,
-        username: createUserDto.username,
-        user_code: createUserDto.username,
-        // dùng tạm password từ form
-        tmp_password: createUserDto.password || '12345678',
-        no_confirm_email: true,
-      },
-      hxbToken,
-    );
 
     const result = await this.hexabaseService.createItem(
       PROJECT_ID,
@@ -91,7 +92,44 @@ export class UsersService {
     return this.hexabaseService.forgotPasswordRequest(email, userCode);
   }
 
-  findAll() {}
+  async findAll(hxbToken: string) {
+    const PROJECT_ID =
+      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
+    const DATASTORE_ID =
+      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
+
+    const rawItems = await this.hexabaseService.searchItems(
+      PROJECT_ID,
+      DATASTORE_ID,
+      hxbToken,
+    );
+
+    console.log(
+      '--- 3. DATA HEXABASE THỰC SỰ LƯU LÀ: ---',
+      JSON.stringify(rawItems[0], null, 2),
+    );
+
+    const mappedUsers = rawItems.map((item: any) => {
+      return {
+        key: item.i_id,
+        userCode: item.userCode || '',
+        lastName: item.lastName || '',
+        lastNameKana: item.lastNameKana || '',
+        name: item.firstName || '',
+        nameKana: item.firstNameKana || '',
+        departmentCode: item.departmentCode || '',
+        departmentName: item.departmentCode || '',
+        roleCode: item.role || '',
+        roleName: item.role || '',
+        email: item.email || '',
+        staffCode: item.staffCode || '',
+        remarks: item.remarks || '',
+        lastLogin: '',
+      };
+    });
+
+    return mappedUsers;
+  }
 
   findOne() {}
 

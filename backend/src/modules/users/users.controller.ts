@@ -41,8 +41,9 @@ export class UsersController {
   }
 
   @Get()
-  findAll() {
-    return this.usersService.findAll();
+  findAll(@Request() req) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.findAll(hxbToken);
   }
 
   @Get(':id')

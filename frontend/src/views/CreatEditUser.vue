@@ -34,7 +34,7 @@ const formState = reactive<UserFormState>({
   canProxyApprove: false,
 });
 
-const departmentOptions = [{ value: "ACFD001", label: "ACFD001 name" }];
+const departmentOptions = [{ value: "ACFD001", label: "ACFD001" }];
 const positionOptions = ref<{ value: string; label: string }[]>([]);
 const roleOptions = [
   { value: "admin", label: "管理者" },
