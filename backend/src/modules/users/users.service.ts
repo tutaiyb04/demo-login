@@ -107,10 +107,6 @@ export class UsersService {
     );
   }
 
-  async forgotPassword(email: string, userCode?: string) {
-    return this.hexabaseService.forgotPasswordRequest(email, userCode);
-  }
-
   async findAll(hxbToken: string) {
     const PROJECT_ID =
       this.configService.get<string>('HEXABASE_PROJECT_ID') || '';

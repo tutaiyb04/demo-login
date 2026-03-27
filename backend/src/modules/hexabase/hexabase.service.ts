@@ -250,18 +250,4 @@ export class HexabaseService {
       throw this.handleError(error, 'Can not change password');
     }
   }
-
-  async forgotPasswordRequest(email: string, userCode?: string) {
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(`${this.baseUrl}users/password/forgot`, {
-          email,
-          user_code: userCode,
-        }),
-      );
-      return response.data;
-    } catch (error) {
-      throw this.handleError(error, 'Can not send to change password request');
-    }
-  }
 }
