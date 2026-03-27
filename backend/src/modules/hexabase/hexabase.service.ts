@@ -30,9 +30,18 @@ export class HexabaseService {
 
   private handleError(error: any, defaultMessage: string): HttpException {
     if (error.response) {
+      console.log('--- HEXABASE ERROR START ---');
+      console.log('url:', error.config?.url);
+      console.log('method:', error.config?.method);
+      console.log('request_data:', error.config?.data);
+      console.log('status:', error.response?.status);
+      console.log('response_data:', error.response?.data);
+      console.log('--- HEXABASE ERROR END ---');
+
       return new HttpException(
         error.response.data.error || defaultMessage,
         error.response.status,
+        error.response.data,
       );
     }
     return new HttpException(
@@ -87,23 +96,86 @@ export class HexabaseService {
 
   async createWorkspaceUser(userData: any, token: string) {
     try {
-      const userPayload = {
-        email: userData.email,
-        password: userData.password,
-        user_code: userData.username,
-        name: `${userData.lastName} ${userData.firstName}`.trim(),
-      };
-
       const response = await firstValueFrom(
         this.httpService.post(
           `${this.baseUrl}users`,
-          { user: userPayload },
+          {
+            email: userData.email,
+            g_id: userData.g_id,
+            username: userData.firstName,
+            user_code: userData.username,
+            no_confirm_email: true,
+            tmp_password: userData.password,
+          },
           { headers: this.getHeaders(token) },
         ),
       );
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Không thể tạo tài khoản trên Workspace');
+    }
+  }
+
+  async addUserToWorkspace(
+    workspaceId: string,
+    payload: {
+      email: string;
+      g_id: string;
+      username?: string;
+      user_code?: string;
+      tmp_password?: string;
+      no_confirm_email?: boolean;
+      send_password_to_email?: boolean;
+    },
+    token: string,
+  ) {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(
+          `${this.baseUrl}workspaces/${workspaceId}/users`,
+          { users: [payload] },
+          { headers: this.getHeaders(token) },
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể thêm user vào workspace/group');
+    }
+  }
+
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+    token: string,
+  ) {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.put(
+          `${this.baseUrl}users/password`,
+          {
+            old_password: oldPassword,
+            new_password: newPassword,
+            confirm_password: newPassword,
+          },
+          { headers: this.getHeaders(token) },
+        ),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể đổi mật khẩu');
+    }
+  }
+  async forgotPasswordRequest(email: string, userCode?: string) {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.post(`${this.baseUrl}users/password/forgot`, {
+          email,
+          user_code: userCode,
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể gửi yêu cầu reset mật khẩu');
     }
   }
 

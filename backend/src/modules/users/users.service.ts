@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/modules/users/users.service.ts
@@ -44,6 +45,24 @@ export class UsersService {
     const DATASTORE_ID =
       this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
 
+    const WORKSPACE_ID =
+      this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
+    const GROUP_ID = this.configService.get<string>('HEXABASE_GROUP_ID') || '';
+
+    await this.hexabaseService.addUserToWorkspace(
+      WORKSPACE_ID,
+      {
+        email: createUserDto.email,
+        g_id: GROUP_ID,
+        username: createUserDto.username,
+        user_code: createUserDto.username,
+        // dùng tạm password từ form
+        tmp_password: createUserDto.password || '12345678',
+        no_confirm_email: true,
+      },
+      hxbToken,
+    );
+
     const result = await this.hexabaseService.createItem(
       PROJECT_ID,
       DATASTORE_ID,
@@ -55,6 +74,21 @@ export class UsersService {
       message: 'Tạo User thành công trên cả Workspace và Datastore',
       data: result,
     };
+  }
+
+  async changePassword(
+    oldPassword: string,
+    newPassword: string,
+    hxbToken: string,
+  ) {
+    return this.hexabaseService.changePassword(
+      oldPassword,
+      newPassword,
+      hxbToken,
+    );
+  }
+  async forgotPassword(email: string, userCode?: string) {
+    return this.hexabaseService.forgotPasswordRequest(email, userCode);
   }
 
   findAll() {}

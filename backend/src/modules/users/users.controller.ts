@@ -22,6 +22,24 @@ export class UsersController {
     return this.usersService.create(createUserDto, hxbToken);
   }
 
+  @Post('password/change')
+  changePassword(
+    @Request() req,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.changePassword(
+      body.oldPassword,
+      body.newPassword,
+      hxbToken,
+    );
+  }
+
+  @Post('password/forgot')
+  forgotPassword(@Body() body: { email: string; userCode?: string }) {
+    return this.usersService.forgotPassword(body.email, body.userCode);
+  }
+
   @Get()
   findAll() {
     return this.usersService.findAll();

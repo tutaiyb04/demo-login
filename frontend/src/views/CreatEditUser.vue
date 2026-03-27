@@ -103,12 +103,13 @@ const handleSubmit = async () => {
     showLoading();
     const payload = {
       username: formState.userId,
-      password: "123",
+      password: "Abcd@1234",
       email: formState.email,
-      name: formState.firstName,
+      name: `${formState.lastName} ${formState.firstName}`.trim(),
+      firstName: formState.firstName,
       lastName: formState.lastName,
       lastNameKana: formState.lastNameKana,
-      nameKana: formState.firstNameKana,
+      firstNameKana: formState.firstNameKana,
       departmentCode: formState.departmentCode,
       positionCode: formState.positionCode,
       startDate: formState.startDate
