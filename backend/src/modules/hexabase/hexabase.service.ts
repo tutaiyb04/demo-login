@@ -30,14 +30,6 @@ export class HexabaseService {
 
   private handleError(error: any, defaultMessage: string): HttpException {
     if (error.response) {
-      console.log('--- HEXABASE ERROR START ---');
-      console.log('url:', error.config?.url);
-      console.log('method:', error.config?.method);
-      console.log('request_data:', error.config?.data);
-      console.log('status:', error.response?.status);
-      console.log('response_data:', error.response?.data);
-      console.log('--- HEXABASE ERROR END ---');
-
       return new HttpException(
         error.response.data.error || defaultMessage,
         error.response.status,
@@ -45,7 +37,7 @@ export class HexabaseService {
       );
     }
     return new HttpException(
-      'Lỗi hệ thống khi gọi Hexabase',
+      'Error when calling Hexabase',
       HttpStatus.INTERNAL_SERVER_ERROR,
     );
   }
@@ -61,7 +53,7 @@ export class HexabaseService {
 
       return response.data.token;
     } catch (error) {
-      throw this.handleError(error, 'Đăng nhập Hexabase thất bại');
+      throw this.handleError(error, 'Login to Hexabase failed');
     }
   }
 
@@ -90,7 +82,7 @@ export class HexabaseService {
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể lấy thông tin user từ Hexabase');
+      throw this.handleError(error, 'Can not get user info from Hexabase');
     }
   }
 
@@ -121,7 +113,7 @@ export class HexabaseService {
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể tạo tài khoản trên Workspace');
+      throw this.handleError(error, 'Can not create user on Workspace');
     }
   }
 
@@ -142,7 +134,7 @@ export class HexabaseService {
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể lưu dữ liệu vào Datastore');
+      throw this.handleError(error, 'Can not save data to Datastore');
     }
   }
 
@@ -162,7 +154,77 @@ export class HexabaseService {
       );
       return response.data.items;
     } catch (error) {
-      throw this.handleError(error, 'Không thể lấy danh sách từ Datastore');
+      throw this.handleError(error, 'Can not get data from Datastore');
+    }
+  }
+
+  async updateItem(
+    projectId: string,
+    datastoreId: string,
+    itemId: string,
+    payload: any,
+    token: string,
+    revNo?: number,
+  ) {
+    const body: any = {
+      item: payload,
+      return_item_result: true,
+    };
+    if (typeof revNo === 'number') {
+      body.rev_no = revNo;
+    } else {
+      body.is_force_update = true;
+    }
+
+    const response = await firstValueFrom(
+      this.httpService.post(
+        `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/edit/${itemId}`,
+        body,
+        { headers: this.getHeaders(token) },
+      ),
+    );
+
+    return response.data;
+  }
+
+  async deleteItem(
+    projectId: string,
+    datastoreId: string,
+    itemId: string,
+    token: string,
+  ) {
+    try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/delete/${itemId}`;
+      const response = await firstValueFrom(
+        this.httpService.delete(url, {
+          headers: this.getHeaders(token),
+          data: {},
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Can not delete item from Datastore');
+    }
+  }
+
+  async removeWorkspaceUser(
+    g_id: string,
+    u_id: string,
+    token: string,
+    w_id?: string,
+  ) {
+    try {
+      const payload: any = { g_id, u_id };
+      if (w_id) payload.w_id = w_id;
+      const response = await firstValueFrom(
+        this.httpService.delete(`${this.baseUrl}users`, {
+          headers: this.getHeaders(token),
+          data: payload,
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Can not remove user from workspace');
     }
   }
 
@@ -185,9 +247,10 @@ export class HexabaseService {
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể đổi mật khẩu');
+      throw this.handleError(error, 'Can not change password');
     }
   }
+
   async forgotPasswordRequest(email: string, userCode?: string) {
     try {
       const response = await firstValueFrom(
@@ -198,7 +261,7 @@ export class HexabaseService {
       );
       return response.data;
     } catch (error) {
-      throw this.handleError(error, 'Không thể gửi yêu cầu reset mật khẩu');
+      throw this.handleError(error, 'Can not send to change password request');
     }
   }
 }

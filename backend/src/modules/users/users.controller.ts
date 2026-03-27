@@ -8,6 +8,7 @@ import {
   Patch,
   Delete,
   Request,
+  Param,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -47,11 +48,24 @@ export class UsersController {
   }
 
   @Get(':id')
-  findOne() {}
+  findOne(@Request() req, @Param('id') id: string) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.findOne(id, hxbToken);
+  }
 
   @Patch(':id')
-  update() {}
+  update(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() updateUserDto: CreateUserDto,
+  ) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.update(id, updateUserDto, hxbToken);
+  }
 
   @Delete(':id')
-  remove() {}
+  remove(@Request() req, @Param('id') id: string) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.remove(id, hxbToken);
+  }
 }

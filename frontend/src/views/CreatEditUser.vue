@@ -37,9 +37,9 @@ const formState = reactive<UserFormState>({
 const departmentOptions = [{ value: "ACFD001", label: "ACFD001" }];
 const positionOptions = ref<{ value: string; label: string }[]>([]);
 const roleOptions = [
-  { value: "admin", label: "管理者" },
-  { value: "admin1", label: "管理者1" },
-  { value: "admin2", label: "管理者2" },
+  { value: "管理者", label: "管理者" },
+  { value: "管理者1", label: "管理者1" },
+  { value: "管理者2", label: "管理者2" },
 ];
 
 const isSaveDisabled = computed(() => {
@@ -66,9 +66,9 @@ const fetchUserData = async (id: string) => {
 
     formState.userId = user.userCode;
     formState.lastName = user.lastName;
-    formState.firstName = user.name;
+    formState.firstName = user.firstName;
     formState.lastNameKana = user.lastNameKana;
-    formState.firstNameKana = user.nameKana;
+    formState.firstNameKana = user.firstNameKana;
     formState.departmentCode = user.departmentCode;
     formState.positionCode = user.positionCode || null;
     formState.email = user.email;
@@ -76,9 +76,9 @@ const fetchUserData = async (id: string) => {
     formState.staffCode = user.staffCode;
     formState.remarks = user.remarks;
     formState.role = user.roleCode;
-    formState.isApprover = user.isApprover || false;
-    formState.canProxyApply = user.canProxyApply || false;
-    formState.canProxyApprove = user.canProxyApprove || false;
+    formState.isApprover = !!user.isApprover;
+    formState.canProxyApply = !!user.canProxyApply;
+    formState.canProxyApprove = !!user.canProxyApprove;
 
     hideLoading();
   } catch (error) {
