@@ -36,11 +36,6 @@ export class UsersController {
     );
   }
 
-  @Post('password/forgot')
-  forgotPassword(@Body() body: { email: string; userCode?: string }) {
-    return this.usersService.forgotPassword(body.email, body.userCode);
-  }
-
   @Get()
   findAll(@Request() req) {
     const hxbToken = req.user.hxbToken;
