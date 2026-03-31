@@ -128,7 +128,7 @@ export class HexabaseService {
       const response = await firstValueFrom(
         this.httpService.post(
           url,
-          { item: payload },
+          { item: payload, use_display_id: true },
           { headers: this.getHeaders(token) },
         ),
       );
@@ -177,6 +177,7 @@ export class HexabaseService {
   ) {
     const body: any = {
       item: payload,
+      use_display_id: true,
       return_item_result: true,
     };
     if (typeof revNo === 'number') {

@@ -137,18 +137,24 @@ const columns: TableColumnsType = [
   margin-top: 24px !important;
 }
 
+:deep(.ant-pagination-item),
+:deep(.ant-pagination-prev .ant-pagination-item-link),
+:deep(.ant-pagination-next .ant-pagination-item-link) {
+  background-color: transparent !important;
+}
+
+:deep(.ant-pagination-item a) {
+  color: #0072c6 !important;
+  font-weight: 700;
+}
+
 :deep(.ant-pagination-item) {
   border-radius: 50%;
-  border: 1px solid #d9d9d9;
 }
 
-:deep(.ant-pagination-item-active) {
-  background-color: #0072c6 !important;
-  border-color: #0072c6 !important;
-}
-
-:deep(.ant-pagination-item-active a) {
-  color: #ffffff !important;
+:deep(.ant-pagination-prev:hover .ant-pagination-item-link),
+:deep(.ant-pagination-next:hover .ant-pagination-item-link) {
+  color: #0072c6 !important;
 }
 
 :deep(.ant-pagination-prev .ant-pagination-item-link),
@@ -159,17 +165,25 @@ const columns: TableColumnsType = [
   border-radius: 4px;
 }
 
-:deep(.ant-pagination-prev.ant-pagination-disabled) {
-  display: none !important;
+:deep(.ant-pagination-prev),
+:deep(.ant-pagination-next) {
+  display: inline-flex;
+  align-items: center;
 }
 
-/* :deep(.ant-pagination-next.ant-pagination-disabled) {
-  display: none !important;
-} */
+:deep(.ant-pagination-item-active) {
+  background-color: #0072c6 !important;
+  border-color: #0072c6 !important;
+  font-weight: 700;
+}
 
-:deep(.ant-pagination-prev:hover .ant-pagination-item-link),
-:deep(.ant-pagination-next:hover .ant-pagination-item-link) {
-  color: #0072c6;
-  cursor: pointer;
+:deep(.ant-pagination-item-active a),
+:deep(.ant-pagination-item-active:hover a) {
+  color: #ffffff !important;
+}
+
+:deep(.ant-pagination-prev.ant-pagination-disabled),
+:deep(.ant-pagination-next.ant-pagination-disabled) {
+  display: none !important;
 }
 </style>

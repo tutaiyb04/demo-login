@@ -117,8 +117,8 @@ export class UsersService {
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
-      page,
-      perPage,
+      1,
+      0,
     );
 
     const mappedUsers = items.map((item: any) => {
@@ -154,6 +154,8 @@ export class UsersService {
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
+      1,
+      0,
     );
 
     const item = response.items.find((x: any) => x.userCode === userCode);
@@ -198,6 +200,8 @@ export class UsersService {
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
+      1,
+      0,
     );
 
     const target = response.items.find((x: any) => x.userCode === userCode);
@@ -259,6 +263,8 @@ export class UsersService {
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
+      1,
+      0,
     );
 
     const target = response.items.find((x: any) => x.userCode === userCode);
