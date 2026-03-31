@@ -77,9 +77,10 @@ const columns: TableColumnsType = [
       pageSize: pageSize,
       total: total,
       showSizeChanger: false,
+      position: ['bottomCenter'],
     }"
-    @change="handleTableChange"
     :scroll="{ x: 'max-content' }"
+    @change="handleTableChange"
   >
     <template
       #bodyCell="{ column, record }: { column: any; record: UserRecord }"
@@ -127,7 +128,48 @@ const columns: TableColumnsType = [
   padding: 14px 16px !important;
   white-space: nowrap;
 }
+
 :deep(.ant-table-placeholder) {
   border-bottom: 1px solid #f0f0f0 !important;
+}
+
+:deep(.ant-pagination) {
+  margin-top: 24px !important;
+}
+
+:deep(.ant-pagination-item) {
+  border-radius: 50%;
+  border: 1px solid #d9d9d9;
+}
+
+:deep(.ant-pagination-item-active) {
+  background-color: #0072c6 !important;
+  border-color: #0072c6 !important;
+}
+
+:deep(.ant-pagination-item-active a) {
+  color: #ffffff !important;
+}
+
+:deep(.ant-pagination-prev .ant-pagination-item-link),
+:deep(.ant-pagination-next .ant-pagination-item-link) {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+:deep(.ant-pagination-prev.ant-pagination-disabled) {
+  display: none !important;
+}
+
+/* :deep(.ant-pagination-next.ant-pagination-disabled) {
+  display: none !important;
+} */
+
+:deep(.ant-pagination-prev:hover .ant-pagination-item-link),
+:deep(.ant-pagination-next:hover .ant-pagination-item-link) {
+  color: #0072c6;
+  cursor: pointer;
 }
 </style>

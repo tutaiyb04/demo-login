@@ -160,7 +160,7 @@ export class HexabaseService {
       );
       return {
         items: response.data.items ?? [],
-        total: response.data.total ?? response.data.count ?? 0,
+        total: response.data.totalItems ?? 0,
       };
     } catch (error) {
       throw this.handleError(error, 'Can not get data from Datastore');
