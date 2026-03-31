@@ -1,18 +1,30 @@
 <script setup lang="ts">
 import { DeleteOutlined, EditOutlined } from "@ant-design/icons-vue";
 import type { UserRecord } from "@/types/user";
-import { Empty, type TableColumnsType } from "ant-design-vue";
+import {
+  Empty,
+  type TableColumnsType,
+  type TablePaginationConfig,
+} from "ant-design-vue";
 
 defineProps<{
   dataSource: UserRecord[];
+  currentPage: number;
+  pageSize: number;
+  total: number;
 }>();
 
 const emit = defineEmits<{
   (e: "edit", userCode: string): void;
   (e: "delete", userCode: string): void;
+  (e: "pageChange", current: number, pageSize: number): void;
 }>();
 
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
+
+const handleTableChange = (pagination: TablePaginationConfig) => {
+  emit("pageChange", pagination.current || 1, pagination.pageSize || 10);
+};
 
 const columns: TableColumnsType = [
   { title: "ユーザーID", dataIndex: "userCode", key: "userCode", width: 140 },
@@ -60,7 +72,13 @@ const columns: TableColumnsType = [
   <a-table
     :columns="columns"
     :data-source="dataSource"
-    :pagination="false"
+    :pagination="{
+      current: currentPage,
+      pageSize: pageSize,
+      total: total,
+      showSizeChanger: false,
+    }"
+    @change="handleTableChange"
     :scroll="{ x: 'max-content' }"
   >
     <template

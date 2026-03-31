@@ -107,19 +107,21 @@ export class UsersService {
     );
   }
 
-  async findAll(hxbToken: string) {
+  async findAll(hxbToken: string, page = 1, perPage = 10) {
     const PROJECT_ID =
       this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
     const DATASTORE_ID =
       this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
 
-    const rawItems = await this.hexabaseService.searchItems(
+    const { items, total } = await this.hexabaseService.searchItems(
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
+      page,
+      perPage,
     );
 
-    const mappedUsers = rawItems.map((item: any) => {
+    const mappedUsers = items.map((item: any) => {
       return {
         key: item.i_id,
         userCode: item.userCode || '',
@@ -139,7 +141,7 @@ export class UsersService {
       };
     });
 
-    return mappedUsers;
+    return { items: mappedUsers, total, page, perPage };
   }
 
   async findOne(userCode: string, hxbToken: string) {
@@ -148,13 +150,13 @@ export class UsersService {
     const DATASTORE_ID =
       this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
 
-    const rawItems = await this.hexabaseService.searchItems(
+    const response = await this.hexabaseService.searchItems(
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
     );
 
-    const item = rawItems.find((x: any) => x.userCode === userCode);
+    const item = response.items.find((x: any) => x.userCode === userCode);
 
     if (!item) {
       throw new NotFoundException('User not found');
@@ -192,13 +194,13 @@ export class UsersService {
     const CAN_PROXY_APPROVE_OPTION_ID =
       this.configService.get<string>('CAN_PROXY_APPROVE_OPTION_ID') || '';
 
-    const rawItems = await this.hexabaseService.searchItems(
+    const response = await this.hexabaseService.searchItems(
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
     );
 
-    const target = rawItems.find((x: any) => x.userCode === userCode);
+    const target = response.items.find((x: any) => x.userCode === userCode);
     if (!target?.i_id) {
       throw new NotFoundException('User not found');
     }
@@ -253,13 +255,13 @@ export class UsersService {
     const WORKSPACE_ID =
       this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
 
-    const rawItems = await this.hexabaseService.searchItems(
+    const response = await this.hexabaseService.searchItems(
       PROJECT_ID,
       DATASTORE_ID,
       hxbToken,
     );
 
-    const target = rawItems.find((x: any) => x.userCode === userCode);
+    const target = response.items.find((x: any) => x.userCode === userCode);
     if (!target?.i_id) {
       throw new NotFoundException('User not found');
     }

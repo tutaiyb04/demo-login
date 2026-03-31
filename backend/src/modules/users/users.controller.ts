@@ -9,6 +9,7 @@ import {
   Delete,
   Request,
   Param,
+  Query,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -37,9 +38,17 @@ export class UsersController {
   }
 
   @Get()
-  findAll(@Request() req) {
+  findAll(
+    @Request() req,
+    @Query('page') page?: string,
+    @Query('perPage') perPage?: string,
+  ) {
     const hxbToken = req.user.hxbToken;
-    return this.usersService.findAll(hxbToken);
+    return this.usersService.findAll(
+      hxbToken,
+      Number(page) || 1,
+      Number(perPage) || 10,
+    );
   }
 
   @Get(':id')

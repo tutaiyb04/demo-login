@@ -10,6 +10,10 @@ import { message } from "ant-design-vue";
 
 const router = useRouter();
 
+const currentPage = ref(1);
+const pageSize = ref(10);
+const total = ref(0);
+
 const searchQuery = ref<string>("");
 const searchResultsCount = ref<number>(0);
 
@@ -17,10 +21,13 @@ const dataSource = ref<UserRecord[]>([]);
 
 const fetchUsers = async () => {
   try {
-    const response = await api.get("/users");
+    const response = await api.get("/users", {
+      params: { page: currentPage.value, perPage: pageSize.value },
+    });
 
-    dataSource.value = response.data;
-    searchResultsCount.value = response.data.length;
+    dataSource.value = response.data.items;
+    total.value = response.data.total;
+    searchResultsCount.value = response.data.total;
   } catch (error) {
     console.error("Lỗi lấy danh sách user:", error);
     message.error(
@@ -88,6 +95,16 @@ const handleDeleteUser = async (userCode: string) => {
 
     <UserTable
       :data-source="dataSource"
+      :current-page="currentPage"
+      :page-size="pageSize"
+      :total="total"
+      @pageChange="
+        (p, ps) => {
+          currentPage = p;
+          pageSize = ps;
+          fetchUsers();
+        }
+      "
       @edit="handleEditUser"
       @delete="handleDeleteUser"
     />

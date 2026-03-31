@@ -138,21 +138,30 @@ export class HexabaseService {
     }
   }
 
-  async searchItems(projectId: string, datastoreId: string, token: string) {
+  async searchItems(
+    projectId: string,
+    datastoreId: string,
+    token: string,
+    page = 1,
+    perPage = 10,
+  ) {
     try {
       const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/search`;
       const response = await firstValueFrom(
         this.httpService.post(
           url,
           {
-            page: 1,
-            per_page: 100,
+            page: page,
+            per_page: perPage,
             use_display_id: true,
           },
           { headers: this.getHeaders(token) },
         ),
       );
-      return response.data.items;
+      return {
+        items: response.data.items ?? [],
+        total: response.data.total ?? response.data.count ?? 0,
+      };
     } catch (error) {
       throw this.handleError(error, 'Can not get data from Datastore');
     }
