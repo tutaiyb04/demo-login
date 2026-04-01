@@ -37,7 +37,7 @@ export class UsersService {
       hxbToken,
     );
 
-    const datastorePayload = {
+    const datastorePayload: any = {
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
       firstName: createUserDto.firstName,
@@ -47,7 +47,6 @@ export class UsersService {
       positionCode: createUserDto.positionCode,
       email: createUserDto.email,
       startDate: createUserDto.startDate,
-      staffCode: createUserDto.staffCode,
       remarks: createUserDto.remarks,
       role: createUserDto.roleCode,
       isApprover:
@@ -68,6 +67,10 @@ export class UsersService {
         workspaceUser.id ||
         '',
     };
+
+    if (createUserDto.staffCode && createUserDto.staffCode.trim() !== '') {
+      datastorePayload.staffCode = createUserDto.staffCode;
+    }
 
     const result = await this.hexabaseService.createItem(
       this.hxbConfig.projectId,
