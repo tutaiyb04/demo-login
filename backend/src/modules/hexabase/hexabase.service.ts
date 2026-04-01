@@ -128,7 +128,7 @@ export class HexabaseService {
       const response = await firstValueFrom(
         this.httpService.post(
           url,
-          { item: payload, use_display_id: true, action_id: 'CreateItem' },
+          { item: payload, use_display_id: true, return_item_result: true },
           { headers: this.getHeaders(token) },
         ),
       );
@@ -258,6 +258,26 @@ export class HexabaseService {
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Can not change password');
+    }
+  }
+
+  async getAutoNumber(
+    projectId: string,
+    datastoreId: string,
+    fieldId: string,
+    token: string,
+  ) {
+    try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/fields/${fieldId}/autonum`;
+
+      const response = await firstValueFrom(
+        this.httpService.post(url, {}, { headers: this.getHeaders(token) }),
+      );
+
+      // API Hexabase thường trả về { "autonumber": "KONOHA-..." }
+      return response.data.result.value;
+    } catch (error) {
+      throw this.handleError(error, 'Can not get AutoNumber from Hexabase');
     }
   }
 }

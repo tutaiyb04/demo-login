@@ -37,7 +37,7 @@ export class UsersService {
       hxbToken,
     );
 
-    const datastorePayload: any = {
+    const datastorePayload = {
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
       firstName: createUserDto.firstName,
@@ -68,10 +68,6 @@ export class UsersService {
         '',
     };
 
-    if (createUserDto.staffCode && createUserDto.staffCode.trim() !== '') {
-      datastorePayload.staffCode = createUserDto.staffCode;
-    }
-
     const result = await this.hexabaseService.createItem(
       this.hxbConfig.projectId,
       this.hxbConfig.userDatastoreId,
@@ -79,11 +75,13 @@ export class UsersService {
       hxbToken,
     );
 
-    console.log(result);
-
     return {
       message: 'Create user successfully on both Workspace and Datastore',
       data: result,
+      staffCode:
+        result.item?.staffCode ||
+        result.item?.staffCodeFieldId ||
+        'KONOHA-Auto',
     };
   }
 
