@@ -47,7 +47,7 @@ export class UsersService {
       positionCode: createUserDto.positionCode,
       email: createUserDto.email,
       startDate: createUserDto.startDate,
-      staffCode: createUserDto.staffCode || '',
+      staffCode: createUserDto.staffCode,
       remarks: createUserDto.remarks,
       role: createUserDto.roleCode,
       isApprover:
@@ -68,7 +68,6 @@ export class UsersService {
         workspaceUser.id ||
         '',
     };
-    console.log(workspaceUser);
 
     const result = await this.hexabaseService.createItem(
       this.hxbConfig.projectId,
@@ -76,6 +75,8 @@ export class UsersService {
       datastorePayload,
       hxbToken,
     );
+
+    console.log(result);
 
     return {
       message: 'Create user successfully on both Workspace and Datastore',

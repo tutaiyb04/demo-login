@@ -128,7 +128,7 @@ export class HexabaseService {
       const response = await firstValueFrom(
         this.httpService.post(
           url,
-          { item: payload, use_display_id: true },
+          { item: payload, use_display_id: true, action_id: 'CreateItem' },
           { headers: this.getHeaders(token) },
         ),
       );
