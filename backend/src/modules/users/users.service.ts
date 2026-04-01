@@ -4,34 +4,22 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 // src/modules/users/users.service.ts
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { HexabaseService } from '../hexabase/hexabase.service';
-import { ConfigService } from '@nestjs/config';
+import type { ConfigType } from '@nestjs/config';
 import { toChecked } from 'src/helper/toChecked';
+import hexabaseConfig from 'src/config/hexabase.config';
 
 @Injectable()
 export class UsersService {
   constructor(
     private hexabaseService: HexabaseService,
-    private configService: ConfigService,
+    @Inject(hexabaseConfig.KEY)
+    private hxbConfig: ConfigType<typeof hexabaseConfig>,
   ) {}
 
   async create(createUserDto: CreateUserDto, hxbToken: any) {
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-    const WORKSPACE_ID =
-      this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
-    const GROUP_ID = this.configService.get<string>('HEXABASE_GROUP_ID') || '';
-    const IS_APPROVER_OPTION_ID =
-      this.configService.get<string>('IS_APPROVER_OPTION_ID') || '';
-    const CAN_PROXY_APPLY_OPTION_ID =
-      this.configService.get<string>('CAN_PROXY_APPLY_OPTION_ID') || '';
-    const CAN_PROXY_APPROVE_OPTION_ID =
-      this.configService.get<string>('CAN_PROXY_APPROVE_OPTION_ID') || '';
-
     const adminInfo = await this.hexabaseService.getUserInfo(hxbToken);
     const invitorId = adminInfo.u_id || adminInfo.id;
 
@@ -41,7 +29,7 @@ export class UsersService {
 
     const workspaceUser = await this.hexabaseService.createWorkspaceUser(
       createUserDto.email,
-      GROUP_ID,
+      this.hxbConfig.groupId,
       fullName,
       createUserDto.username,
       password,
@@ -59,20 +47,20 @@ export class UsersService {
       positionCode: createUserDto.positionCode,
       email: createUserDto.email,
       startDate: createUserDto.startDate,
-      staffCode: createUserDto.staffCode,
+      staffCode: createUserDto.staffCode || '',
       remarks: createUserDto.remarks,
       role: createUserDto.roleCode,
       isApprover:
-        createUserDto.isApprover && IS_APPROVER_OPTION_ID
-          ? [IS_APPROVER_OPTION_ID]
+        createUserDto.isApprover && this.hxbConfig.isApproverOptionId
+          ? [this.hxbConfig.isApproverOptionId]
           : [],
       canProxyApply:
-        createUserDto.canProxyApply && CAN_PROXY_APPLY_OPTION_ID
-          ? [CAN_PROXY_APPLY_OPTION_ID]
+        createUserDto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
+          ? [this.hxbConfig.canProxyApplyOptionId]
           : [],
       canProxyApprove:
-        createUserDto.canProxyApprove && CAN_PROXY_APPROVE_OPTION_ID
-          ? [CAN_PROXY_APPROVE_OPTION_ID]
+        createUserDto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
+          ? [this.hxbConfig.canProxyApproveOptionId]
           : [],
       workspaceUserId:
         workspaceUser.user_profile?.u_id ||
@@ -83,8 +71,8 @@ export class UsersService {
     console.log(workspaceUser);
 
     const result = await this.hexabaseService.createItem(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       datastorePayload,
       hxbToken,
     );
@@ -108,14 +96,9 @@ export class UsersService {
   }
 
   async findAll(hxbToken: string, page = 1, perPage = 10) {
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-
     const { items, total } = await this.hexabaseService.searchItems(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       hxbToken,
       1,
       0,
@@ -145,14 +128,9 @@ export class UsersService {
   }
 
   async findOne(userCode: string, hxbToken: string) {
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-
     const response = await this.hexabaseService.searchItems(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       hxbToken,
       1,
       0,
@@ -185,20 +163,9 @@ export class UsersService {
   }
 
   async update(userCode: string, dto: CreateUserDto, hxbToken: string) {
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-    const IS_APPROVER_OPTION_ID =
-      this.configService.get<string>('IS_APPROVER_OPTION_ID') || '';
-    const CAN_PROXY_APPLY_OPTION_ID =
-      this.configService.get<string>('CAN_PROXY_APPLY_OPTION_ID') || '';
-    const CAN_PROXY_APPROVE_OPTION_ID =
-      this.configService.get<string>('CAN_PROXY_APPROVE_OPTION_ID') || '';
-
     const response = await this.hexabaseService.searchItems(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       hxbToken,
       1,
       0,
@@ -223,21 +190,23 @@ export class UsersService {
       remarks: dto.remarks,
       role: dto.roleCode,
       isApprover:
-        dto.isApprover && IS_APPROVER_OPTION_ID ? [IS_APPROVER_OPTION_ID] : [],
+        dto.isApprover && this.hxbConfig.isApproverOptionId
+          ? [this.hxbConfig.isApproverOptionId]
+          : [],
       canProxyApply:
-        dto.canProxyApply && CAN_PROXY_APPLY_OPTION_ID
-          ? [CAN_PROXY_APPLY_OPTION_ID]
+        dto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
+          ? [this.hxbConfig.canProxyApplyOptionId]
           : [],
       canProxyApprove:
-        dto.canProxyApprove && CAN_PROXY_APPROVE_OPTION_ID
-          ? [CAN_PROXY_APPROVE_OPTION_ID]
+        dto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
+          ? [this.hxbConfig.canProxyApproveOptionId]
           : [],
       workspaceUserId: target.workspaceUserId || '',
     };
 
     const result = await this.hexabaseService.updateItem(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       target.i_id,
       updatePayload,
       hxbToken,
@@ -251,17 +220,9 @@ export class UsersService {
   }
 
   async remove(userCode: string, hxbToken: string) {
-    const PROJECT_ID =
-      this.configService.get<string>('HEXABASE_PROJECT_ID') || '';
-    const DATASTORE_ID =
-      this.configService.get<string>('HEXABASE_USER_DATASTORE_ID') || '';
-    const GROUP_ID = this.configService.get<string>('HEXABASE_GROUP_ID') || '';
-    const WORKSPACE_ID =
-      this.configService.get<string>('HEXABASE_WORKSPACE_ID') || '';
-
     const response = await this.hexabaseService.searchItems(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       hxbToken,
       1,
       0,
@@ -275,10 +236,10 @@ export class UsersService {
     try {
       if (target.workspaceUserId) {
         await this.hexabaseService.removeWorkspaceUser(
-          GROUP_ID,
+          this.hxbConfig.groupId,
           target.workspaceUserId,
           hxbToken,
-          WORKSPACE_ID,
+          this.hxbConfig.workspaceId,
         );
       }
     } catch (error) {
@@ -286,8 +247,8 @@ export class UsersService {
     }
 
     await this.hexabaseService.deleteItem(
-      PROJECT_ID,
-      DATASTORE_ID,
+      this.hxbConfig.projectId,
+      this.hxbConfig.userDatastoreId,
       target.i_id,
       hxbToken,
     );

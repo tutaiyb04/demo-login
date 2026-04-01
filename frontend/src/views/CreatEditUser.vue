@@ -52,7 +52,6 @@ const isSaveDisabled = computed(() => {
     !formState.departmentCode ||
     !formState.email ||
     !formState.startDate ||
-    !formState.staffCode ||
     !formState.remarks ||
     !formState.role
   );

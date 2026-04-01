@@ -9,10 +9,11 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { AppService } from './app.service';
 import { HexabaseModule } from './modules/hexabase/hexabase.module';
+import hexabaseConfig from './config/hexabase.config';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ isGlobal: true }),
+    ConfigModule.forRoot({ isGlobal: true, load: [hexabaseConfig] }),
     UsersModule,
     AuthModule,
     HexabaseModule,

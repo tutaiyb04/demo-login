@@ -158,16 +158,13 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
         <template #label>
           <div class="flex items-center gap-3">
             <span class="font-bold text-[1.6rem]">スタッフコード</span>
-            <span
-              class="bg-[#ff4d4f] text-white text-[1.4rem] px-3 py-0.5 rounded-sm leading-none !font-bold"
-              >必須</span
-            >
           </div>
         </template>
         <a-input
           v-model:value="formState.staffCode"
-          placeholder="スタッフコードを入力してください"
+          placeholder="自動発電システム"
           class="h-[40px] !w-[405px] max-w-full"
+          disabled
         />
       </a-form-item>
 
