@@ -69,7 +69,11 @@ export class HexabaseService {
 
       return response.data;
     } catch (error) {
-      console.error('Hexabase logout error', error.message);
+      if (error instanceof Error) {
+        console.log(error.message);
+      } else {
+        console.log('Đã xảy ra lỗi không xác định:', error);
+      }
     }
   }
 

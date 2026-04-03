@@ -8,8 +8,8 @@ import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { HexabaseService } from '../hexabase/hexabase.service';
 import type { ConfigType } from '@nestjs/config';
-import { toChecked } from 'src/helper/toChecked';
-import hexabaseConfig from 'src/config/hexabase.config';
+import hexabaseConfig from '@/config/hexabase.config';
+import { toChecked } from '@/helper/toChecked';
 
 @Injectable()
 export class UsersService {

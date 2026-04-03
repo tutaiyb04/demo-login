@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { Public } from 'src/common/decorators/public.decoratos';
-import { JwtAuthGuard } from 'src/common/guard/jwt-auth.guard';
+import { Public } from '@/common/decorators/public.decoratos';
+import { JwtAuthGuard } from '@/common/guard/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
