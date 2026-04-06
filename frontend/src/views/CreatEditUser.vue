@@ -58,43 +58,6 @@ const isSaveDisabled = computed(() => {
   );
 });
 
-const fetchDepartments = async () => {
-  try {
-    const response = await api.get("/departments");
-    console.log(response.data);
-    departmentOptions.value = response.data.map((d: any) => ({
-      value: d.departmentCode,
-      label: `${d.departmentName}`,
-    }));
-  } catch (error) {
-    message.error("Không tải được danh sách Department");
-  }
-};
-
-const fetchPositionsByDepartment = async (departmentCode: string) => {
-  if (!departmentCode) {
-    positionOptions.value = [];
-    return;
-  }
-
-  isLoadingPosition.value = true;
-  try {
-    const response = await api.post("/positions/search-by-department-code", {
-      departmentCode,
-    });
-
-    positionOptions.value = response.data.map((p: any) => ({
-      value: p.positionCode,
-      label: `${p.positionName}`,
-    }));
-  } catch (error) {
-    message.error("Không tải được danh sách Position");
-    positionOptions.value = [];
-  } finally {
-    isLoadingPosition.value = false;
-  }
-};
-
 const fetchUserData = async (id: string) => {
   showLoading();
   try {
@@ -124,26 +87,9 @@ const fetchUserData = async (id: string) => {
   }
 };
 
-watch(
-  () => formState.departmentCode,
-  async (newDepartmentCode) => {
-    formState.positionCode = null;
-    positionOptions.value = [];
-    if (newDepartmentCode) {
-      await fetchPositionsByDepartment(newDepartmentCode);
-    }
-  },
-);
-
 onMounted(async () => {
-  await fetchDepartments();
-
   if (isEditMode.value) {
     await fetchUserData(userIdToEdit.value!);
-
-    if (formState.departmentCode) {
-      await fetchPositionsByDepartment(formState.departmentCode);
-    }
   }
 });
 

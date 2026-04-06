@@ -7,7 +7,6 @@ defineProps<{
   isEditMode: boolean;
   departmentOptions: { value: string; label: string }[];
   positionOptions: { value: string; label: string }[];
-  isLoadingPosition: boolean;
 }>();
 
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
@@ -114,7 +113,6 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
           placeholder="役職"
           class="h-[40px] !w-[405px] max-w-full"
           :disabled="!formState.departmentCode"
-          :loading="isLoadingPosition"
         >
           <template #notFoundContent>
             <a-empty :image="simpleImage" description="No data" class="my-4" />

@@ -9,8 +9,6 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './common/guard/jwt-auth.guard';
 import { AppService } from './app.service';
 import { HexabaseModule } from './modules/hexabase/hexabase.module';
-import { DepartmentsModule } from './modules/departments/departments.module';
-import { PositionsModule } from './modules/positions/positions.module';
 import hexabaseConfig from './config/hexabase.config';
 
 @Module({
@@ -19,8 +17,6 @@ import hexabaseConfig from './config/hexabase.config';
     UsersModule,
     AuthModule,
     HexabaseModule,
-    DepartmentsModule,
-    PositionsModule,
   ],
   controllers: [AppController],
   providers: [
