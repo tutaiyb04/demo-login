@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-floating-promises */
 import { Test, TestingModule } from '@nestjs/testing';
 import { HexabaseService } from './hexabase.service';
+import { beforeEach, describe, it } from 'node:test';
 
 describe('HexabaseService', () => {
   let service: HexabaseService;

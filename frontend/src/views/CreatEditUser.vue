@@ -5,7 +5,7 @@ import SystemPermissionForm from "@/components/createEditUser/SystemPermissionFo
 import { useLoading } from "@/composables/useLoading";
 import type { UserFormState } from "@/types/user";
 import { message } from "ant-design-vue";
-import { computed, onMounted, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/utils/axios";
 
@@ -34,8 +34,9 @@ const formState = reactive<UserFormState>({
   canProxyApprove: false,
 });
 
-const departmentOptions = [{ value: "ACFD001", label: "ACFD001" }];
+const departmentOptions = ref<{ value: string; label: string }[]>([]);
 const positionOptions = ref<{ value: string; label: string }[]>([]);
+const isLoadingPosition = ref(false);
 const roleOptions = [
   { value: "管理者", label: "管理者" },
   { value: "管理者1", label: "管理者1" },
@@ -56,6 +57,42 @@ const isSaveDisabled = computed(() => {
     !formState.role
   );
 });
+
+const fetchDepartments = async () => {
+  try {
+    const response = await api.get("/departments");
+    departmentOptions.value = response.data.map((d: any) => ({
+      value: d.departmentCode,
+      label: `${d.departmentName}`,
+    }));
+  } catch (error) {
+    message.error("Không tải được danh sách Department");
+  }
+};
+
+const fetchPositionsByDepartment = async (departmentCode: string) => {
+  if (!departmentCode) {
+    positionOptions.value = [];
+    return;
+  }
+
+  isLoadingPosition.value = true;
+  try {
+    const response = await api.post("/positions/search-by-department-code", {
+      departmentCode,
+    });
+
+    positionOptions.value = response.data.map((p: any) => ({
+      value: p.positionCode,
+      label: `${p.positionName}`,
+    }));
+  } catch (error) {
+    message.error("Không tải được danh sách Position");
+    positionOptions.value = [];
+  } finally {
+    isLoadingPosition.value = false;
+  }
+};
 
 const fetchUserData = async (id: string) => {
   showLoading();
@@ -86,9 +123,26 @@ const fetchUserData = async (id: string) => {
   }
 };
 
-onMounted(() => {
+watch(
+  () => formState.departmentCode,
+  async (newDepartmentCode) => {
+    formState.positionCode = null;
+    positionOptions.value = [];
+    if (newDepartmentCode) {
+      await fetchPositionsByDepartment(newDepartmentCode);
+    }
+  },
+);
+
+onMounted(async () => {
+  await fetchDepartments();
+
   if (isEditMode.value) {
-    fetchUserData(userIdToEdit.value!);
+    await fetchUserData(userIdToEdit.value!);
+
+    if (formState.departmentCode) {
+      await fetchPositionsByDepartment(formState.departmentCode);
+    }
   }
 });
 
@@ -153,6 +207,7 @@ const handleCancel = () => {
           :is-edit-mode="isEditMode"
           :department-options="departmentOptions"
           :position-options="positionOptions"
+          :is-loading-position="isLoadingPosition"
         />
 
         <SystemPermissionForm
