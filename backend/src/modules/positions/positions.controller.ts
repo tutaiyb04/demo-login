@@ -7,12 +7,12 @@ import { PositionsService } from './positions.service';
 export class PositionsController {
   constructor(private readonly positionsService: PositionsService) {}
   @Post('search-by-department-code')
-  searchByDepartmentCode(@Request() req, @Body() body) {
+  searchByDepartmentCode(
+    @Request() req,
+    @Body('departmentCode') departmentCode: string,
+  ) {
     const hxbToken = req.user.hxbToken;
 
-    return this.positionsService.getByDepartmentCode(
-      body.departmentCode,
-      hxbToken,
-    );
+    return this.positionsService.getByDepartmentCode(departmentCode, hxbToken);
   }
 }

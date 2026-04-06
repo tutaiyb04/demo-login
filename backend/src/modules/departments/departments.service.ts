@@ -24,9 +24,14 @@ export class DepartmentsService {
       1000,
     );
 
-    return response.items.map((item: any) => ({
-      departmentCode: item.departmentCode,
-      departmentName: item.departmentName,
-    }));
+    return response.items
+      .map((item: any) => ({
+        departmentCode: item.DepartmentCode,
+        departmentName: item.DepartmentName,
+
+        createAt: item.CreatedAt,
+        updatedAt: item.UpdatedAt,
+      }))
+      .filter((x: any) => x.departmentCode);
   }
 }

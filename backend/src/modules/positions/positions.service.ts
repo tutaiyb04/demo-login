@@ -27,6 +27,11 @@ export class PositionsService {
     );
 
     return res.items
+      .map((item: any) => ({
+        departmentCode: item.DepartmentCode,
+        positionCode: item.PositionCode,
+        positionName: item.PositionName,
+      }))
       .filter((item: any) => item.departmentCode === departmentCode)
       .map((item: any) => ({
         positionCode: item.positionCode,

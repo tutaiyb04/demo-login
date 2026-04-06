@@ -61,6 +61,7 @@ const isSaveDisabled = computed(() => {
 const fetchDepartments = async () => {
   try {
     const response = await api.get("/departments");
+    console.log(response.data);
     departmentOptions.value = response.data.map((d: any) => ({
       value: d.departmentCode,
       label: `${d.departmentName}`,
