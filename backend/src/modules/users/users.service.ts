@@ -22,7 +22,7 @@ export class UsersService {
   private async findLookupItemId(
     datastoreId: string,
     codeField: string,
-    codeValue: string,
+    codeValue: string | undefined,
     hxbToken: string,
   ): Promise<string | null> {
     if (!codeValue) return null;
@@ -59,6 +59,20 @@ export class UsersService {
       hxbToken,
     );
 
+    const department_i_id = await this.findLookupItemId(
+      this.hxbConfig.departmentDatastoreId,
+      'DepartmentCode',
+      createUserDto.departmentCode,
+      hxbToken,
+    );
+
+    const position_i_id = await this.findLookupItemId(
+      this.hxbConfig.positionDatastoreId,
+      'PositionCode',
+      createUserDto.positionCode,
+      hxbToken,
+    );
+
     const datastorePayload = {
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
@@ -67,6 +81,8 @@ export class UsersService {
       firstNameKana: createUserDto.firstNameKana,
       departmentCode: createUserDto.departmentCode,
       positionCode: createUserDto.positionCode,
+      DepartmentLookUp: department_i_id || '',
+      PositionLookUp: position_i_id || '',
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       remarks: createUserDto.remarks,
@@ -128,7 +144,37 @@ export class UsersService {
       0,
     );
 
+    const deptRes = await this.hexabaseService.searchItems(
+      this.hxbConfig.projectId,
+      this.hxbConfig.departmentDatastoreId,
+      hxbToken,
+      1,
+      0,
+    );
+
+    const deptMap: Record<string, string> = {};
+    deptRes.items.forEach((d: any) => {
+      deptMap[d.DepartmentCode] = d.DepartmentName;
+    });
+
+    const posRes = await this.hexabaseService.searchItems(
+      this.hxbConfig.projectId,
+      this.hxbConfig.positionDatastoreId,
+      hxbToken,
+      1,
+      0,
+    );
+
+    const posMap: Record<string, string> = {};
+    posRes.items.forEach((p: any) => {
+      posMap[p.PositionCode] = p.PositionName || p.title;
+    });
+
     const mappedUsers = items.map((item: any) => {
+      const deptCode = item.departmentCode || item.DepartmentLookUp || '';
+
+      const posCode = item.positionCode || item.PositionLookUp || '';
+
       return {
         key: item.i_id,
         userCode: item.userCode || '',
@@ -136,8 +182,10 @@ export class UsersService {
         lastNameKana: item.lastNameKana || '',
         name: item.firstName || '',
         nameKana: item.firstNameKana || '',
-        departmentCode: item.departmentCode || '',
-        departmentName: item.departmentName || item.departmentCode || '',
+        departmentCode: deptCode,
+        departmentName: deptMap[deptCode] || posCode,
+        positionCode: posCode,
+        positionName: posMap[posCode] || posCode,
         roleCode: item.role || '',
         roleName: item.role || '',
         email: item.email || '',
@@ -147,6 +195,8 @@ export class UsersService {
         lastLogin: item.lastLogin || item.updated_at || item.created_at || '',
       };
     });
+
+    console.log('mappedUsers', mappedUsers);
 
     return { items: mappedUsers, total, page, perPage };
   }

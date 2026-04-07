@@ -62,7 +62,7 @@ const isSaveDisabled = computed(() => {
 
 const fetchDepartments = async () => {
   try {
-    const response = await api.get("/departments"); // Đổi endpoint tương ứng với backend của bạn
+    const response = await api.get("/departments");
     departmentOptions.value = response.data.map((dept: any) => ({
       value: dept.DepartmentCode,
       label: dept.DepartmentName,
