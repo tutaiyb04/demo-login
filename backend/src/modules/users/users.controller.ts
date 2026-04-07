@@ -18,14 +18,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get('me')
-  async getInfo(@Request() req) {
-    return await this.usersService.findOne(
-      req.user.username,
-      req.user.hxbToken,
-    );
-  }
-
   @Get()
   findAll(
     @Request() req,

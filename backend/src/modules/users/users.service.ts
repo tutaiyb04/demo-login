@@ -245,7 +245,7 @@ export class UsersService {
       ],
     );
 
-    const item = response.items[0];
+    const item = response.items.find((x: any) => x.userCode === userCode);
 
     if (!item) {
       throw new NotFoundException('User not found');
