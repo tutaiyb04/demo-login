@@ -16,7 +16,6 @@ export class PositionsService {
   ) {}
 
   async findByDepartment(departmentCode: string, token: string) {
-    // THAY THẾ BẰNG PROJECT_ID VÀ DATASTORE_ID THỰC TẾ CỦA BẠN
     const projectId = this.hxbConfig.projectId;
     const datastoreId = this.hxbConfig.positionDatastoreId;
 
@@ -25,15 +24,18 @@ export class PositionsService {
       projectId,
       datastoreId,
       token,
+      1,
+      1000,
+      [
+        {
+          id: 'DepartmentCode',
+          search_value: [departmentCode],
+          exact_match: true,
+        },
+      ],
     );
 
-    // Lọc ra các Position thuộc Department vừa chọn
-    const filteredPositions = res.items.filter(
-      (item: any) => item.DepartmentCode === departmentCode,
-    );
-
-    // Format lại data
-    return filteredPositions.map((item: any) => ({
+    return res.items.map((item: any) => ({
       PositionCode: item.PositionCode,
       PositionName: item.PositionName,
       CreatedAt: item.CreatedAt,

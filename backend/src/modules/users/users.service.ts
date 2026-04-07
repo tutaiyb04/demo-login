@@ -32,9 +32,18 @@ export class UsersService {
         this.hxbConfig.projectId,
         datastoreId,
         hxbToken,
+        1,
+        1,
+        [
+          {
+            id: codeField,
+            search_value: [codeValue],
+            exact_match: true,
+          },
+        ],
       );
 
-      const item = res.items.find((x: any) => x[codeField] === codeValue);
+      const item = res.items[0];
 
       return item ? item.i_id : null;
     } catch (error) {
@@ -59,26 +68,26 @@ export class UsersService {
       hxbToken,
     );
 
-    const department_i_id = await this.findLookupItemId(
-      this.hxbConfig.departmentDatastoreId,
-      'DepartmentCode',
-      createUserDto.departmentCode,
-      hxbToken,
-    );
-
-    const position_i_id = await this.findLookupItemId(
-      this.hxbConfig.positionDatastoreId,
-      'PositionCode',
-      createUserDto.positionCode,
-      hxbToken,
-    );
-
-    const role_i_id = await this.findLookupItemId(
-      this.hxbConfig.roleDatastoreId,
-      'RoleCode',
-      createUserDto.roleCode,
-      hxbToken,
-    );
+    const [department_i_id, position_i_id, role_i_id] = await Promise.all([
+      this.findLookupItemId(
+        this.hxbConfig.departmentDatastoreId,
+        'DepartmentCode',
+        createUserDto.departmentCode,
+        hxbToken,
+      ),
+      this.findLookupItemId(
+        this.hxbConfig.positionDatastoreId,
+        'PositionCode',
+        createUserDto.positionCode,
+        hxbToken,
+      ),
+      this.findLookupItemId(
+        this.hxbConfig.roleDatastoreId,
+        'RoleCode',
+        createUserDto.roleCode,
+        hxbToken,
+      ),
+    ]);
 
     const datastorePayload = {
       userCode: createUserDto.username,
@@ -217,8 +226,6 @@ export class UsersService {
       };
     });
 
-    console.log('mappedUsers', mappedUsers);
-
     return { items: mappedUsers, total, page, perPage };
   }
 
@@ -261,7 +268,11 @@ export class UsersService {
     };
   }
 
-  async update(userCode: string, dto: CreateUserDto, hxbToken: string) {
+  async update(
+    userCode: string,
+    createUserDto: CreateUserDto,
+    hxbToken: string,
+  ) {
     const response = await this.hexabaseService.searchItems(
       this.hxbConfig.projectId,
       this.hxbConfig.userDatastoreId,
@@ -270,26 +281,26 @@ export class UsersService {
       0,
     );
 
-    const department_i_id = await this.findLookupItemId(
-      this.hxbConfig.departmentDatastoreId,
-      'DepartmentCode',
-      dto.departmentCode,
-      hxbToken,
-    );
-
-    const position_i_id = await this.findLookupItemId(
-      this.hxbConfig.positionDatastoreId,
-      'PositionCode',
-      dto.positionCode,
-      hxbToken,
-    );
-
-    const role_i_id = await this.findLookupItemId(
-      this.hxbConfig.roleDatastoreId,
-      'RoleCode',
-      dto.roleCode,
-      hxbToken,
-    );
+    const [department_i_id, position_i_id, role_i_id] = await Promise.all([
+      this.findLookupItemId(
+        this.hxbConfig.departmentDatastoreId,
+        'DepartmentCode',
+        createUserDto.departmentCode,
+        hxbToken,
+      ),
+      this.findLookupItemId(
+        this.hxbConfig.positionDatastoreId,
+        'PositionCode',
+        createUserDto.positionCode,
+        hxbToken,
+      ),
+      this.findLookupItemId(
+        this.hxbConfig.roleDatastoreId,
+        'RoleCode',
+        createUserDto.roleCode,
+        hxbToken,
+      ),
+    ]);
 
     const target = response.items.find((x: any) => x.userCode === userCode);
     if (!target?.i_id) {
@@ -297,31 +308,31 @@ export class UsersService {
     }
 
     const updatePayload = {
-      userCode: dto.username,
-      lastName: dto.lastName,
-      firstName: dto.firstName,
-      lastNameKana: dto.lastNameKana,
-      firstNameKana: dto.firstNameKana,
-      departmentCode: dto.departmentCode,
-      positionCode: dto.positionCode,
-      role: dto.roleCode,
+      userCode: createUserDto.username,
+      lastName: createUserDto.lastName,
+      firstName: createUserDto.firstName,
+      lastNameKana: createUserDto.lastNameKana,
+      firstNameKana: createUserDto.firstNameKana,
+      departmentCode: createUserDto.departmentCode,
+      positionCode: createUserDto.positionCode,
+      role: createUserDto.roleCode,
       DepartmentLookUp: department_i_id || '',
       PositionLookUp: position_i_id || '',
       RoleLookUp: role_i_id || '',
-      email: dto.email,
-      startDate: dto.startDate,
-      staffCode: dto.staffCode,
-      remarks: dto.remarks,
+      email: createUserDto.email,
+      startDate: createUserDto.startDate,
+      staffCode: createUserDto.staffCode,
+      remarks: createUserDto.remarks,
       isApprover:
-        dto.isApprover && this.hxbConfig.isApproverOptionId
+        createUserDto.isApprover && this.hxbConfig.isApproverOptionId
           ? [this.hxbConfig.isApproverOptionId]
           : [],
       canProxyApply:
-        dto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
+        createUserDto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
           ? [this.hxbConfig.canProxyApplyOptionId]
           : [],
       canProxyApprove:
-        dto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
+        createUserDto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
           ? [this.hxbConfig.canProxyApproveOptionId]
           : [],
       workspaceUserId: target.workspaceUserId || '',

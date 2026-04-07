@@ -147,21 +147,28 @@ export class HexabaseService {
     datastoreId: string,
     token: string,
     page = 1,
-    perPage = 10,
+    perPage = 1000,
+    conditions?: any,
   ) {
     try {
       const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/search`;
+
+      const payload: any = {
+        page: page,
+        per_page: perPage,
+        use_display_id: true,
+      };
+
+      if (conditions && conditions.length > 0) {
+        payload.conditions = conditions;
+      }
+
       const response = await firstValueFrom(
-        this.httpService.post(
-          url,
-          {
-            page: page,
-            per_page: perPage,
-            use_display_id: true,
-          },
-          { headers: this.getHeaders(token) },
-        ),
+        this.httpService.post(url, payload, {
+          headers: this.getHeaders(token),
+        }),
       );
+
       return {
         items: response.data.items ?? [],
         total: response.data.totalItems ?? 0,

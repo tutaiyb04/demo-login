@@ -5,7 +5,7 @@ import SystemPermissionForm from "@/components/createEditUser/SystemPermissionFo
 import { useLoading } from "@/composables/useLoading";
 import type { UserFormState } from "@/types/user";
 import { message } from "ant-design-vue";
-import { computed, onMounted, reactive, ref, watch } from "vue";
+import { computed, nextTick, onMounted, reactive, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import api from "@/utils/axios";
 
@@ -138,10 +138,14 @@ const fetchUserData = async (id: string) => {
     formState.canProxyApprove = !!user.canProxyApprove;
 
     formState.departmentCode = user.departmentCode;
-    setTimeout(() => {
-      formState.positionCode = user.positionCode || null;
-      isInitialLoad = false; // Tắt cờ sau khi load xong data khởi tạo
-    }, 500);
+    if (user.departmentCode) {
+      await fetchPositions(user.departmentCode);
+    }
+    formState.positionCode = user.positionCode || null;
+
+    await nextTick();
+    isInitialLoad = false;
+
     hideLoading();
   } catch (error) {
     message.error("ユーザーデータの読み込み中にエラーが発生しました");
