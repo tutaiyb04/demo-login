@@ -11,6 +11,7 @@ import { AppService } from './app.service';
 import { HexabaseModule } from './modules/hexabase/hexabase.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { PositionsModule } from './modules/positions/positions.module';
+import { RolesModule } from './modules/roles/roles.module';
 import hexabaseConfig from './config/hexabase.config';
 
 @Module({
@@ -21,6 +22,7 @@ import hexabaseConfig from './config/hexabase.config';
     HexabaseModule,
     DepartmentsModule,
     PositionsModule,
+    RolesModule,
   ],
   controllers: [AppController],
   providers: [

@@ -36,14 +36,9 @@ const formState = reactive<UserFormState>({
 
 const departmentOptions = ref<{ value: string; label: string }[]>([]);
 const positionOptions = ref<{ value: string; label: string }[]>([]);
+const roleOptions = ref<{ value: string; label: string }[]>([]);
 const isLoadingPosition = ref(false);
 let isInitialLoad = true;
-
-const roleOptions = [
-  { value: "管理者", label: "管理者" },
-  { value: "管理者1", label: "管理者1" },
-  { value: "管理者2", label: "管理者2" },
-];
 
 const isSaveDisabled = computed(() => {
   return (
@@ -59,6 +54,19 @@ const isSaveDisabled = computed(() => {
     !formState.role
   );
 });
+
+const fetchRoles = async () => {
+  try {
+    const response = await api.get("/roles");
+
+    roleOptions.value = response.data.map((role: any) => ({
+      value: role.RoleCode,
+      label: role.RoleName,
+    }));
+  } catch (error) {
+    message.error("Lỗi khi tải danh sách phân quyền");
+  }
+};
 
 const fetchDepartments = async () => {
   try {
@@ -142,13 +150,12 @@ const fetchUserData = async (id: string) => {
 };
 
 onMounted(async () => {
-  // Lấy list Department ngay khi vào trang
-  await fetchDepartments();
+  await Promise.all([fetchDepartments(), fetchRoles()]);
 
   if (isEditMode.value) {
     await fetchUserData(userIdToEdit.value!);
   } else {
-    isInitialLoad = false; // Mode Create không cần đợi
+    isInitialLoad = false;
   }
 });
 

@@ -73,6 +73,13 @@ export class UsersService {
       hxbToken,
     );
 
+    const role_i_id = await this.findLookupItemId(
+      this.hxbConfig.roleDatastoreId,
+      'RoleCode',
+      createUserDto.roleCode,
+      hxbToken,
+    );
+
     const datastorePayload = {
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
@@ -80,13 +87,14 @@ export class UsersService {
       lastNameKana: createUserDto.lastNameKana,
       firstNameKana: createUserDto.firstNameKana,
       departmentCode: createUserDto.departmentCode,
+      role: createUserDto.roleCode,
       positionCode: createUserDto.positionCode,
       DepartmentLookUp: department_i_id || '',
       PositionLookUp: position_i_id || '',
+      RoleLookUp: role_i_id || '',
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       remarks: createUserDto.remarks,
-      role: createUserDto.roleCode,
       isApprover:
         createUserDto.isApprover && this.hxbConfig.isApproverOptionId
           ? [this.hxbConfig.isApproverOptionId]
@@ -170,10 +178,23 @@ export class UsersService {
       posMap[p.PositionCode] = p.PositionName || p.title;
     });
 
+    const roleRes = await this.hexabaseService.searchItems(
+      this.hxbConfig.projectId,
+      this.hxbConfig.roleDatastoreId,
+      hxbToken,
+      1,
+      0,
+    );
+
+    const roleMap: Record<string, string> = {};
+    roleRes.items.forEach((r: any) => {
+      roleMap[r.RoleCode] = r.RoleName || r.title;
+    });
+
     const mappedUsers = items.map((item: any) => {
       const deptCode = item.departmentCode || item.DepartmentLookUp || '';
-
       const posCode = item.positionCode || item.PositionLookUp || '';
+      const rlCode = item.role || item.RoleLookUp || '';
 
       return {
         key: item.i_id,
@@ -186,8 +207,8 @@ export class UsersService {
         departmentName: deptMap[deptCode] || posCode,
         positionCode: posCode,
         positionName: posMap[posCode] || posCode,
-        roleCode: item.role || '',
-        roleName: item.role || '',
+        roleCode: rlCode,
+        roleName: roleMap[rlCode] || rlCode,
         email: item.email || '',
         staffCode: item.staffCode || '',
         workspaceUserId: item.workspaceUserId || '',
@@ -216,6 +237,10 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
 
+    const deptCode = item.departmentCode || item.DepartmentLookUp || null;
+    const posCode = item.positionCode || item.PositionLookUp || null;
+    const rlCode = item.role || item.RoleLookUp || null;
+
     return {
       i_id: item.i_id,
       userCode: item.userCode || '',
@@ -223,13 +248,13 @@ export class UsersService {
       firstName: item.firstName || '',
       lastNameKana: item.lastNameKana || '',
       firstNameKana: item.firstNameKana || '',
-      departmentCode: item.departmentCode || null,
-      positionCode: item.positionCode || null,
+      departmentCode: deptCode,
+      positionCode: posCode,
+      roleCode: rlCode,
       email: item.email || '',
       startDate: item.startDate || null,
       staffCode: item.staffCode || '',
       remarks: item.remarks || '',
-      roleCode: item.role || null,
       isApprover: toChecked(item.isApprover),
       canProxyApply: toChecked(item.canProxyApply),
       canProxyApprove: toChecked(item.canProxyApprove),
@@ -245,6 +270,27 @@ export class UsersService {
       0,
     );
 
+    const department_i_id = await this.findLookupItemId(
+      this.hxbConfig.departmentDatastoreId,
+      'DepartmentCode',
+      dto.departmentCode,
+      hxbToken,
+    );
+
+    const position_i_id = await this.findLookupItemId(
+      this.hxbConfig.positionDatastoreId,
+      'PositionCode',
+      dto.positionCode,
+      hxbToken,
+    );
+
+    const role_i_id = await this.findLookupItemId(
+      this.hxbConfig.roleDatastoreId,
+      'RoleCode',
+      dto.roleCode,
+      hxbToken,
+    );
+
     const target = response.items.find((x: any) => x.userCode === userCode);
     if (!target?.i_id) {
       throw new NotFoundException('User not found');
@@ -258,11 +304,14 @@ export class UsersService {
       firstNameKana: dto.firstNameKana,
       departmentCode: dto.departmentCode,
       positionCode: dto.positionCode,
+      role: dto.roleCode,
+      DepartmentLookUp: department_i_id || '',
+      PositionLookUp: position_i_id || '',
+      RoleLookUp: role_i_id || '',
       email: dto.email,
       startDate: dto.startDate,
       staffCode: dto.staffCode,
       remarks: dto.remarks,
-      role: dto.roleCode,
       isApprover:
         dto.isApprover && this.hxbConfig.isApproverOptionId
           ? [this.hxbConfig.isApproverOptionId]
