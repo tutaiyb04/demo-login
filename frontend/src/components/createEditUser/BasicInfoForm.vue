@@ -7,6 +7,7 @@ defineProps<{
   isEditMode: boolean;
   departmentOptions: { value: string; label: string }[];
   positionOptions: { value: string; label: string }[];
+  isLoadingPosition: boolean;
 }>();
 
 const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
@@ -110,9 +111,10 @@ const simpleImage = Empty.PRESENTED_IMAGE_SIMPLE;
         <a-select
           v-model:value="formState.positionCode"
           :options="positionOptions"
+          :loading="isLoadingPosition"
           placeholder="役職"
           class="h-[40px] !w-[405px] max-w-full"
-          :disabled="!formState.departmentCode"
+          :disabled="!formState.departmentCode || isLoadingPosition"
         >
           <template #notFoundContent>
             <a-empty :image="simpleImage" description="No data" class="my-4" />

@@ -14,11 +14,33 @@ import { toChecked } from '@/helper/toChecked';
 @Injectable()
 export class UsersService {
   constructor(
-    private hexabaseService: HexabaseService,
     @Inject(hexabaseConfig.KEY)
     private hxbConfig: ConfigType<typeof hexabaseConfig>,
+    private hexabaseService: HexabaseService,
   ) {}
 
+  private async findLookupItemId(
+    datastoreId: string,
+    codeField: string,
+    codeValue: string,
+    hxbToken: string,
+  ): Promise<string | null> {
+    if (!codeValue) return null;
+
+    try {
+      const res = await this.hexabaseService.searchItems(
+        this.hxbConfig.projectId,
+        datastoreId,
+        hxbToken,
+      );
+
+      const item = res.items.find((x: any) => x[codeField] === codeValue);
+
+      return item ? item.i_id : null;
+    } catch (error) {
+      return null;
+    }
+  }
   async create(createUserDto: CreateUserDto, hxbToken: any) {
     const adminInfo = await this.hexabaseService.getUserInfo(hxbToken);
     const invitorId = adminInfo.u_id || adminInfo.id;

@@ -37,6 +37,8 @@ const formState = reactive<UserFormState>({
 const departmentOptions = ref<{ value: string; label: string }[]>([]);
 const positionOptions = ref<{ value: string; label: string }[]>([]);
 const isLoadingPosition = ref(false);
+let isInitialLoad = true;
+
 const roleOptions = [
   { value: "管理者", label: "管理者" },
   { value: "管理者1", label: "管理者1" },
@@ -58,6 +60,55 @@ const isSaveDisabled = computed(() => {
   );
 });
 
+const fetchDepartments = async () => {
+  try {
+    const response = await api.get("/departments"); // Đổi endpoint tương ứng với backend của bạn
+    departmentOptions.value = response.data.map((dept: any) => ({
+      value: dept.DepartmentCode,
+      label: dept.DepartmentName,
+    }));
+  } catch (error) {
+    message.error("Lỗi khi tải danh sách phòng ban");
+  }
+};
+
+const fetchPositions = async (deptCode: string) => {
+  isLoadingPosition.value = true;
+  try {
+    const response = await api.post("/positions/search-by-departmentCode", {
+      DepartmentCode: deptCode,
+    });
+
+    positionOptions.value = response.data.map((pos: any) => ({
+      value: pos.PositionCode,
+      label: pos.PositionName,
+    }));
+  } catch (error) {
+    message.error("Lỗi khi tải danh sách chức vụ");
+    positionOptions.value = [];
+  } finally {
+    isLoadingPosition.value = false;
+  }
+};
+
+watch(
+  () => formState.departmentCode,
+  async (newDeptCode, oldDeptCode) => {
+    if (newDeptCode) {
+      await fetchPositions(newDeptCode);
+
+      // Nếu người dùng chủ động đổi Department (không phải lúc mới load data Edit) -> Reset Position
+      if (!isInitialLoad && oldDeptCode !== undefined) {
+        formState.positionCode = null;
+      }
+    } else {
+      // Nếu clear Department -> Xóa list Position và reset PositionCode
+      positionOptions.value = [];
+      formState.positionCode = null;
+    }
+  },
+);
+
 const fetchUserData = async (id: string) => {
   showLoading();
   try {
@@ -69,8 +120,6 @@ const fetchUserData = async (id: string) => {
     formState.firstName = user.firstName;
     formState.lastNameKana = user.lastNameKana;
     formState.firstNameKana = user.firstNameKana;
-    formState.departmentCode = user.departmentCode;
-    formState.positionCode = user.positionCode || null;
     formState.email = user.email;
     formState.startDate = user.startDate ? dayjs(user.startDate) : null;
     formState.staffCode = user.staffCode;
@@ -80,6 +129,11 @@ const fetchUserData = async (id: string) => {
     formState.canProxyApply = !!user.canProxyApply;
     formState.canProxyApprove = !!user.canProxyApprove;
 
+    formState.departmentCode = user.departmentCode;
+    setTimeout(() => {
+      formState.positionCode = user.positionCode || null;
+      isInitialLoad = false; // Tắt cờ sau khi load xong data khởi tạo
+    }, 500);
     hideLoading();
   } catch (error) {
     message.error("ユーザーデータの読み込み中にエラーが発生しました");
@@ -88,8 +142,13 @@ const fetchUserData = async (id: string) => {
 };
 
 onMounted(async () => {
+  // Lấy list Department ngay khi vào trang
+  await fetchDepartments();
+
   if (isEditMode.value) {
     await fetchUserData(userIdToEdit.value!);
+  } else {
+    isInitialLoad = false; // Mode Create không cần đợi
   }
 });
 
