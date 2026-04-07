@@ -235,10 +235,17 @@ export class UsersService {
       this.hxbConfig.userDatastoreId,
       hxbToken,
       1,
-      0,
+      1,
+      [
+        {
+          id: 'userCode',
+          search_value: [userCode],
+          exact_match: true,
+        },
+      ],
     );
 
-    const item = response.items.find((x: any) => x.userCode === userCode);
+    const item = response.items[0];
 
     if (!item) {
       throw new NotFoundException('User not found');
