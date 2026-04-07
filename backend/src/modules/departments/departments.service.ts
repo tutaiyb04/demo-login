@@ -16,7 +16,6 @@ export class DepartmentsService {
   ) {}
 
   async findAll(token: string) {
-    // THAY THẾ BẰNG PROJECT_ID VÀ DATASTORE_ID THỰC TẾ CỦA BẠN
     const projectId = this.hxbConfig.projectId;
     const departmentDatastoreId = this.hxbConfig.departmentDatastoreId;
 
@@ -26,7 +25,6 @@ export class DepartmentsService {
       token,
     );
 
-    // Format lại data trả về cho frontend
     return res.items.map((item) => ({
       DepartmentName: item.DepartmentName,
       DepartmentCode: item.DepartmentCode,

@@ -4,28 +4,37 @@
 import { Injectable } from '@nestjs/common';
 import { HexabaseService } from '../hexabase/hexabase.service';
 import { JwtService } from '@nestjs/jwt';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private hexabaseService: HexabaseService,
     private jwtService: JwtService,
+    private usersService: UsersService,
   ) {}
 
   async login(username: string, password: string) {
     const hxbToken = await this.hexabaseService.login(username, password);
 
-    const user = await this.hexabaseService.getUserInfo(hxbToken);
+    const basicUser = await this.hexabaseService.getUserInfo(hxbToken);
+
+    const fullUserDetail = await this.usersService.findOne(username, hxbToken);
 
     const payload = {
       username: username,
-      sub: user.id || user.u_id,
+      sub: basicUser.id || basicUser.u_id,
       hxbToken: hxbToken,
+    };
+
+    const responseUser = {
+      ...basicUser,
+      ...fullUserDetail,
     };
 
     return {
       access_token: await this.jwtService.signAsync(payload),
-      user: user,
+      user: responseUser,
     };
   }
 

@@ -18,25 +18,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Request() req, @Body() createUserDto: CreateUserDto) {
-    const hxbToken = req.user.hxbToken;
-    return this.usersService.create(createUserDto, hxbToken);
-  }
-
-  @Post('password/change')
-  changePassword(
-    @Request() req,
-    @Body() body: { oldPassword: string; newPassword: string },
-  ) {
-    const hxbToken = req.user.hxbToken;
-    return this.usersService.changePassword(
-      body.oldPassword,
-      body.newPassword,
-      hxbToken,
-    );
-  }
-
   @Get()
   findAll(
     @Request() req,
@@ -55,6 +36,33 @@ export class UsersController {
   findOne(@Request() req, @Param('id') id: string) {
     const hxbToken = req.user.hxbToken;
     return this.usersService.findOne(id, hxbToken);
+  }
+
+  @Get('me')
+  async getInfo(@Request() req) {
+    return await this.usersService.findOne(
+      req.user.username,
+      req.user.hxbToken,
+    );
+  }
+
+  @Post()
+  create(@Request() req, @Body() createUserDto: CreateUserDto) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.create(createUserDto, hxbToken);
+  }
+
+  @Post('password/change')
+  changePassword(
+    @Request() req,
+    @Body() body: { oldPassword: string; newPassword: string },
+  ) {
+    const hxbToken = req.user.hxbToken;
+    return this.usersService.changePassword(
+      body.oldPassword,
+      body.newPassword,
+      hxbToken,
+    );
   }
 
   @Patch(':id')

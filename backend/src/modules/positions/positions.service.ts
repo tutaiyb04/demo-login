@@ -19,7 +19,6 @@ export class PositionsService {
     const projectId = this.hxbConfig.projectId;
     const datastoreId = this.hxbConfig.positionDatastoreId;
 
-    // Lấy toàn bộ Position
     const res = await this.hexabaseService.searchItems(
       projectId,
       datastoreId,
