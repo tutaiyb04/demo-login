@@ -1,21 +1,15 @@
 <script setup lang="ts">
+import { useAuthStore } from "@/stores/authStores";
 import api from "@/utils/axios";
 import { message } from "ant-design-vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 
 const router = useRouter();
+const authStore = useAuthStore();
 
-const loggedInUser = ref<string>("");
-
-onMounted(() => {
-  const user = localStorage.getItem("loggedInUser");
-  if (user) {
-    const userObj = JSON.parse(user);
-    loggedInUser.value = userObj.username;
-  } else {
-    loggedInUser.value = "Guest";
-  }
+const loggedInUserName = computed(() => {
+  return authStore.userInfo?.username || "Guest";
 });
 
 const handleLogout = async () => {
@@ -26,7 +20,7 @@ const handleLogout = async () => {
     console.error("Logout failed:", error);
   } finally {
     localStorage.removeItem("access_token");
-    localStorage.removeItem("loggedInUser");
+    authStore.userInfo = null;
 
     router.push("/login");
   }
@@ -74,7 +68,7 @@ const navigateTo = (path: string) => {
             />
           </svg>
         </div>
-        <span>{{ loggedInUser }}</span>
+        <span>{{ loggedInUserName }}</span>
       </div>
 
       <div

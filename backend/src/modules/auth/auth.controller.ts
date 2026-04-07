@@ -1,9 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -34,5 +36,13 @@ export class AuthController {
     await this.authService.logout(hxbToken);
 
     return { message: 'Đăng xuất thành công' };
+  }
+
+  @Get('info')
+  @HttpCode(HttpStatus.OK)
+  async getInfo(@Request() req) {
+    // req.user chứa payload từ JWT (bao gồm username, sub, hxbToken)
+    // được gắn vào bởi JwtStrategy sau khi verify token thành công
+    return await this.authService.getInfo(req.user);
   }
 }

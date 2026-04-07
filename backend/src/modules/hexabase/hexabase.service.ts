@@ -77,6 +77,25 @@ export class HexabaseService {
     }
   }
 
+  async getItemDetail(
+    projectId: string,
+    datastoreId: string,
+    itemId: string,
+    token: string,
+  ) {
+    try {
+      const url = `${this.baseUrl}applications/${projectId}/datastores/${datastoreId}/items/details/${itemId}`;
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: this.getHeaders(token),
+        }),
+      );
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Can not get item detail from Datastore');
+    }
+  }
+
   async getUserInfo(token: string) {
     try {
       const response = await firstValueFrom(

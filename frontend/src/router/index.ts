@@ -2,23 +2,33 @@ import { createRouter, createWebHistory } from "vue-router";
 
 import { routesList } from "./routesList";
 import { useLoading } from "@/composables/useLoading";
+import { useAuthStore } from "@/stores/authStores";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: routesList,
 });
 
-router.beforeEach((to, from, next) => {
-  const { showLoading } = useLoading();
-  showLoading();
+router.beforeEach(async (to, from, next) => {
+  const token = localStorage.getItem("access_token");
+  const authStore = useAuthStore();
 
-  const isAuthenticated = localStorage.getItem("loggedInUser");
-  const requiresAuth = to.meta.requiresAuth;
+  // Nếu có token nhưng chưa có thông tin user trong store (ví dụ: vừa F5)
+  if (token && !authStore.isAuthenticated) {
+    try {
+      await authStore.fetchUserInfo();
+    } catch (error) {
+      // Token hết hạn hoặc không hợp lệ -> Xóa token và bắt login lại
+      authStore.clearAuth();
+      if (to.path !== "/login") {
+        return next("/login");
+      }
+    }
+  }
 
-  if (requiresAuth && !isAuthenticated) {
-    next({ name: "login" });
-  } else if (to.name === "login" && isAuthenticated) {
-    next({ name: "wf-tops" });
+  // Logic check guard thông thường
+  if (to.meta.requiresAuth && !token) {
+    next("/login");
   } else {
     next();
   }
