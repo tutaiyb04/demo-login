@@ -16,10 +16,16 @@ export class AuthService {
 
   async login(username: string, password: string) {
     const hxbToken = await this.hexabaseService.login(username, password);
+    console.log(hxbToken);
 
     const basicUser = await this.hexabaseService.getUserInfo(hxbToken);
+    console.log('basicUser', basicUser);
 
-    const fullUserDetail = await this.usersService.findOne(username, hxbToken);
+    const fullUserDetail = await this.usersService.findOne(
+      basicUser.username,
+      hxbToken,
+    );
+    console.log('fullUserDetail', fullUserDetail);
 
     const payload = {
       username: username,
@@ -31,6 +37,8 @@ export class AuthService {
       ...basicUser,
       ...fullUserDetail,
     };
+
+    console.log('responseUser', responseUser);
 
     return {
       access_token: await this.jwtService.signAsync(payload),

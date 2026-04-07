@@ -5,6 +5,7 @@ import { message } from "ant-design-vue";
 import { reactive } from "vue";
 import { useLoading } from "@/composables/useLoading";
 import api from "@/utils/axios";
+import { useAuthStore } from "@/stores/authStores";
 
 message.config({
   duration: 10,
@@ -39,7 +40,9 @@ const onFinish = async (values: FormState) => {
     const response = await api.post("/auth/login", payload);
 
     localStorage.setItem("access_token", response.data.access_token);
-    localStorage.setItem("loggedInUser", JSON.stringify(response.data.user));
+
+    const authStore = useAuthStore();
+    authStore.setUser(response.data.user);
 
     message.success("ログインに成功しました。");
     router.push("/wf-tops");
