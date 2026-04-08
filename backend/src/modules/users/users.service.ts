@@ -68,7 +68,7 @@ export class UsersService {
       hxbToken,
     );
 
-    const [department_i_id, position_i_id, role_i_id] = await Promise.all([
+    const [department_i_id, position_i_id] = await Promise.all([
       this.findLookupItemId(
         this.hxbConfig.departmentDatastoreId,
         'DepartmentCode',
@@ -81,12 +81,6 @@ export class UsersService {
         createUserDto.positionCode,
         hxbToken,
       ),
-      this.findLookupItemId(
-        this.hxbConfig.roleDatastoreId,
-        'RoleCode',
-        createUserDto.roleCode,
-        hxbToken,
-      ),
     ]);
 
     const datastorePayload = {
@@ -96,11 +90,11 @@ export class UsersService {
       lastNameKana: createUserDto.lastNameKana,
       firstNameKana: createUserDto.firstNameKana,
       departmentCode: createUserDto.departmentCode,
-      role: createUserDto.roleCode,
+      // RoleCode is stored directly on user datastore (role table has been removed).
+      role: createUserDto.roleCode || 'GUEST',
       positionCode: createUserDto.positionCode,
       DepartmentLookUp: department_i_id || '',
       PositionLookUp: position_i_id || '',
-      RoleLookUp: role_i_id || '',
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       remarks: createUserDto.remarks,
@@ -187,23 +181,10 @@ export class UsersService {
       posMap[p.PositionCode] = p.PositionName || p.title;
     });
 
-    const roleRes = await this.hexabaseService.searchItems(
-      this.hxbConfig.projectId,
-      this.hxbConfig.roleDatastoreId,
-      hxbToken,
-      1,
-      0,
-    );
-
-    const roleMap: Record<string, string> = {};
-    roleRes.items.forEach((r: any) => {
-      roleMap[r.RoleCode] = r.RoleName || r.title;
-    });
-
     const mappedUsers = items.map((item: any) => {
       const deptCode = item.departmentCode || item.DepartmentLookUp || '';
       const posCode = item.positionCode || item.PositionLookUp || '';
-      const rlCode = item.role || item.RoleLookUp || '';
+      const rlCode = item.role || item.RoleLookUp || 'GUEST';
 
       return {
         key: item.i_id,
@@ -217,7 +198,8 @@ export class UsersService {
         positionCode: posCode,
         positionName: posMap[posCode] || posCode,
         roleCode: rlCode,
-        roleName: roleMap[rlCode] || rlCode,
+        // With removed role table, keep display name = role code.
+        roleName: rlCode,
         email: item.email || '',
         staffCode: item.staffCode || '',
         workspaceUserId: item.workspaceUserId || '',
@@ -253,7 +235,7 @@ export class UsersService {
 
     const deptCode = item.departmentCode || item.DepartmentLookUp || null;
     const posCode = item.positionCode || item.PositionLookUp || null;
-    const rlCode = item.role || item.RoleLookUp || null;
+    const rlCode = item.role || item.RoleLookUp || 'GUEST';
 
     return {
       i_id: item.i_id,
@@ -288,7 +270,7 @@ export class UsersService {
       0,
     );
 
-    const [department_i_id, position_i_id, role_i_id] = await Promise.all([
+    const [department_i_id, position_i_id] = await Promise.all([
       this.findLookupItemId(
         this.hxbConfig.departmentDatastoreId,
         'DepartmentCode',
@@ -299,12 +281,6 @@ export class UsersService {
         this.hxbConfig.positionDatastoreId,
         'PositionCode',
         createUserDto.positionCode,
-        hxbToken,
-      ),
-      this.findLookupItemId(
-        this.hxbConfig.roleDatastoreId,
-        'RoleCode',
-        createUserDto.roleCode,
         hxbToken,
       ),
     ]);
@@ -322,10 +298,10 @@ export class UsersService {
       firstNameKana: createUserDto.firstNameKana,
       departmentCode: createUserDto.departmentCode,
       positionCode: createUserDto.positionCode,
-      role: createUserDto.roleCode,
+      // RoleCode is stored directly on user datastore (role table has been removed).
+      role: createUserDto.roleCode || 'GUEST',
       DepartmentLookUp: department_i_id || '',
       PositionLookUp: position_i_id || '',
-      RoleLookUp: role_i_id || '',
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       staffCode: createUserDto.staffCode,

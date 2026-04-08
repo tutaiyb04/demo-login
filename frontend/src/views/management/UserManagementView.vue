@@ -1,1 +1,3 @@
-<template><h1>ユーザー一括登録</h1></template>
+<script setup lang="ts"></script>
+
+<template></template>
