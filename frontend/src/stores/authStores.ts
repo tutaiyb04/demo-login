@@ -4,34 +4,30 @@ import { ref } from "vue";
 import api from "@/utils/axios";
 
 // Định nghĩa interface dựa trên data từ Hexabase
-export interface UserInfo {
-  id?: string;
-  email?: string;
-  username?: string;
-  DepartmentCode?: string;
-  PositionCode?: string;
-  RoleCode?: string;
-  // Thêm các trường khác nếu cần
-}
+export type AuthInfo = {
+  username: string;
+  email: string | null;
+  fullName: string | null;
+  workspaceUserId: string | null;
+  itemId: string | null;
+  departmentCode: string | null;
+  positionCode: string | null;
+  roleCode: string | null;
+  departmentName?: string | null;
+  positionName?: string | null;
+  roleName?: string | null;
+};
 
 export const useAuthStore = defineStore("auth", () => {
-  const userInfo = ref<UserInfo | null>(null);
+  const userInfo = ref<AuthInfo | null>(null);
   const isAuthenticated = ref<boolean>(false);
 
   // Hàm gọi API /auth/info
   const fetchUserInfo = async () => {
-    try {
-      // Axios interceptor đã tự động đính kèm token vào header
-      const response = await api.get("/auth/info");
-      userInfo.value = response.data;
-      isAuthenticated.value = true;
-      return response.data;
-    } catch (error) {
-      console.error("Failed to fetch user info:", error);
-      userInfo.value = null;
-      isAuthenticated.value = false;
-      throw error;
-    }
+    const response = await api.get<AuthInfo>("/auth/info");
+    userInfo.value = response.data;
+    isAuthenticated.value = true;
+    return response.data;
   };
 
   const clearAuth = () => {

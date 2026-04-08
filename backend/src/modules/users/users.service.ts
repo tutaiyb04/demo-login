@@ -153,12 +153,15 @@ export class UsersService {
   }
 
   async findAll(hxbToken: string, page = 1, perPage = 10) {
+    const safePage = Number.isFinite(page) && page > 0 ? page : 1;
+    const safePerPage = Number.isFinite(perPage) && perPage > 0 ? perPage : 10;
+
     const { items, total } = await this.hexabaseService.searchItems(
       this.hxbConfig.projectId,
       this.hxbConfig.userDatastoreId,
       hxbToken,
-      1,
-      0,
+      safePage,
+      safePerPage,
     );
 
     const deptRes = await this.hexabaseService.searchItems(
@@ -226,7 +229,7 @@ export class UsersService {
       };
     });
 
-    return { items: mappedUsers, total, page, perPage };
+    return { items: mappedUsers, total, page: safePage, perPage: safePerPage };
   }
 
   async findOne(userCode: string, hxbToken: string) {
