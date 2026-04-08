@@ -20,7 +20,7 @@ const handleLogout = async () => {
     console.error("Logout failed:", error);
   } finally {
     localStorage.removeItem("access_token");
-    authStore.userInfo = null;
+    authStore.clearAuth();
 
     router.push("/login");
   }
