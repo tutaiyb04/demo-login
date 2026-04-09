@@ -1,12 +1,11 @@
 <script setup lang="ts">
+import api from "@/utils/axios";
+import UserTable from "@/components/userList/UserTable.vue";
+import UserSearchForm from "@/components/userList/UserSearchForm.vue";
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-
-import type { UserRecord } from "@/types/user";
-import UserSearchForm from "@/components/userList/UserSearchForm.vue";
-import UserTable from "@/components/userList/UserTable.vue";
-import api from "@/utils/axios";
 import { message } from "ant-design-vue";
+import type { UserRecord } from "@/types/user";
 
 const router = useRouter();
 

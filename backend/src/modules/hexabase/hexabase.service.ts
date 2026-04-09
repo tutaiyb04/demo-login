@@ -30,17 +30,6 @@ export class HexabaseService {
 
   private handleError(error: any, defaultMessage: string): HttpException {
     if (error.response) {
-      // 👇 THÊM ĐOẠN LOG NÀY ĐỂ XEM LỖI GỐC CỦA HEXABASE 👇
-      console.error('\n=== LỖI TỪ HEXABASE ===');
-      console.error('1. URL API:', error.config?.url);
-      console.error('2. Dữ liệu gửi đi (Payload):', error.config?.data);
-      console.error(
-        '3. LỖI CHI TIẾT:',
-        JSON.stringify(error.response.data, null, 2),
-      );
-      console.error('=======================\n');
-      // 👆 ================================================ 👆
-
       return new HttpException(
         error.response.data.error || defaultMessage,
         error.response.status,
@@ -221,6 +210,8 @@ export class HexabaseService {
       use_display_id: true,
       return_item_result: true,
     };
+
+    console.log(body);
     if (typeof revNo === 'number') {
       body.rev_no = revNo;
     } else {

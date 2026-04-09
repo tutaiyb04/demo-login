@@ -9,6 +9,8 @@ import ApplyDocListView from "@/views/management/ApplyDocListView.vue";
 import CompanyListView from "@/views/management/CompanyListView.vue";
 import DepartmentListView from "@/views/management/DepartmentListView.vue";
 import PositionListView from "@/views/management/PositionListView.vue";
+import UserImport from "@/views/management/UserImport.vue";
+import UserImportPreview from "@/views/management/UserImportPreview.vue";
 import UserManagementView from "@/views/management/UserManagementView.vue";
 import ApplyRouteListView from "@/views/register/ApplyRouteListView.vue";
 import FilesView from "@/views/register/FilesView.vue";
@@ -231,6 +233,28 @@ export const routesList: RouteRecordRaw[] = [
       title: "ユーザマスタ登録",
       description:
         "ユーザを新規登録します。CSVをインポートする場合は「ユーザインポート」より設定してください。",
+      layoutType: "admin",
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/user-import",
+    name: "user-import",
+    component: UserImport,
+    meta: {
+      title: "ユーザインポートアップロード",
+      description: "ユーザーを一括インポートします",
+      layoutType: "admin",
+      requiresAuth: true,
+    },
+  },
+  {
+    path: "/user-import-preview",
+    name: "user-import-preview",
+    component: UserImportPreview,
+    meta: {
+      title: "ユーザーインポートプレビュー",
+      description: "インポートするユーザーをプレビューします",
       layoutType: "admin",
       requiresAuth: true,
     },

@@ -8,7 +8,12 @@ export default registerAs('hexabase', () => ({
   roleDatastoreId: process.env.HEXABASE_ROLE_DATASTORE_ID || '',
   workspaceId: process.env.HEXABASE_WORKSPACE_ID || '',
   groupId: process.env.HEXABASE_GROUP_ID || '',
-  isApproverOptionId: process.env.IS_APPROVER_OPTION_ID || '',
-  canProxyApplyOptionId: process.env.CAN_PROXY_APPLY_OPTION_ID || '',
-  canProxyApproveOptionId: process.env.CAN_PROXY_APPROVE_OPTION_ID || '',
+  isApproverTrueOptionId: process.env.IS_APPROVER_TRUE_OPTION_ID || '',
+  isApproverFalseOptionId: process.env.IS_APPROVER_FALSE_OPTION_ID || '',
+  canProxyApplyTrueOptionId: process.env.CAN_PROXY_APPLY_TRUE_OPTION_ID || '',
+  canProxyApplyFalseOptionId: process.env.CAN_PROXY_APPLY_FALSE_OPTION_ID || '',
+  canProxyApproveTrueOptionId:
+    process.env.CAN_PROXY_APPROVE_TRUE_OPTION_ID || '',
+  canProxyApproveFalseOptionId:
+    process.env.CAN_PROXY_APPROVE_FALSE_OPTION_ID || '',
 }));

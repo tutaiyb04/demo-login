@@ -9,7 +9,6 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { HexabaseService } from '../hexabase/hexabase.service';
 import type { ConfigType } from '@nestjs/config';
 import hexabaseConfig from '@/config/hexabase.config';
-import { toChecked } from '@/helper/toChecked';
 
 @Injectable()
 export class UsersService {
@@ -98,18 +97,17 @@ export class UsersService {
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       remarks: createUserDto.remarks,
-      isApprover:
-        createUserDto.isApprover && this.hxbConfig.isApproverOptionId
-          ? [this.hxbConfig.isApproverOptionId]
-          : [],
-      canProxyApply:
-        createUserDto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
-          ? [this.hxbConfig.canProxyApplyOptionId]
-          : [],
-      canProxyApprove:
-        createUserDto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
-          ? [this.hxbConfig.canProxyApproveOptionId]
-          : [],
+      isApprover: createUserDto.isApprover
+        ? [this.hxbConfig.isApproverTrueOptionId]
+        : [this.hxbConfig.isApproverFalseOptionId],
+
+      canProxyApply: createUserDto.canProxyApply
+        ? [this.hxbConfig.canProxyApplyTrueOptionId]
+        : [this.hxbConfig.canProxyApplyFalseOptionId],
+
+      canProxyApprove: createUserDto.canProxyApprove
+        ? [this.hxbConfig.canProxyApproveTrueOptionId]
+        : [this.hxbConfig.canProxyApproveFalseOptionId],
       workspaceUserId:
         workspaceUser.user_profile?.u_id ||
         workspaceUser.u_id ||
@@ -240,6 +238,11 @@ export class UsersService {
     const posCode = item.positionCode || item.PositionLookUp || null;
     const rlCode = item.role || item.RoleLookUp || 'GUEST';
 
+    const checkValue = (val: any) => {
+      if (Array.isArray(val)) return val[0] === 'true';
+      return val === 'true';
+    };
+
     return {
       i_id: item.i_id,
       userCode: item.userCode || '',
@@ -254,9 +257,19 @@ export class UsersService {
       startDate: item.startDate || null,
       staffCode: item.staffCode || '',
       remarks: item.remarks || '',
-      isApprover: toChecked(item.isApprover),
-      canProxyApply: toChecked(item.canProxyApply),
-      canProxyApprove: toChecked(item.canProxyApprove),
+      isApprover: Array.isArray(item.isApprover)
+        ? item.isApprover.includes(this.hxbConfig.isApproverTrueOptionId)
+        : false,
+
+      canProxyApply: Array.isArray(item.canProxyApply)
+        ? item.canProxyApply.includes(this.hxbConfig.canProxyApplyTrueOptionId)
+        : false,
+
+      canProxyApprove: Array.isArray(item.canProxyApprove)
+        ? item.canProxyApprove.includes(
+            this.hxbConfig.canProxyApproveTrueOptionId,
+          )
+        : false,
     };
   }
 
@@ -309,20 +322,21 @@ export class UsersService {
       startDate: createUserDto.startDate,
       staffCode: createUserDto.staffCode,
       remarks: createUserDto.remarks,
-      isApprover:
-        createUserDto.isApprover && this.hxbConfig.isApproverOptionId
-          ? [this.hxbConfig.isApproverOptionId]
-          : [],
-      canProxyApply:
-        createUserDto.canProxyApply && this.hxbConfig.canProxyApplyOptionId
-          ? [this.hxbConfig.canProxyApplyOptionId]
-          : [],
-      canProxyApprove:
-        createUserDto.canProxyApprove && this.hxbConfig.canProxyApproveOptionId
-          ? [this.hxbConfig.canProxyApproveOptionId]
-          : [],
+      isApprover: createUserDto.isApprover
+        ? [this.hxbConfig.isApproverTrueOptionId]
+        : [this.hxbConfig.isApproverFalseOptionId],
+
+      canProxyApply: createUserDto.canProxyApply
+        ? [this.hxbConfig.canProxyApplyTrueOptionId]
+        : [this.hxbConfig.canProxyApplyFalseOptionId],
+
+      canProxyApprove: createUserDto.canProxyApprove
+        ? [this.hxbConfig.canProxyApproveTrueOptionId]
+        : [this.hxbConfig.canProxyApproveFalseOptionId],
       workspaceUserId: target.workspaceUserId || '',
     };
+
+    console.log('updatePayload', updatePayload);
 
     const result = await this.hexabaseService.updateItem(
       this.hxbConfig.projectId,
@@ -363,7 +377,7 @@ export class UsersService {
         );
       }
     } catch (error) {
-      console.warn('removeWorkspaceUser failed, continue deleteItem:', error);
+      console.log(error);
     }
 
     await this.hexabaseService.deleteItem(

@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
@@ -22,8 +23,6 @@ type AuthInfoResponse = {
   positionName?: string | null;
   roleName?: string | null;
 };
-
-
 
 @Injectable()
 export class AuthService {
@@ -56,9 +55,9 @@ export class AuthService {
   }
 
   private async searchUserDatastoreOne(
-    hxbToken: string, 
-    fieldId: string, 
-    value: string
+    hxbToken: string,
+    fieldId: string,
+    value: string,
   ) {
     const res = await this.hexabaseService.searchItems(
       this.hxbConfig.projectId,
@@ -95,7 +94,7 @@ export class AuthService {
         );
         if (byWs) return byWs;
       } catch (e) {
-        console.log("Can not get workspaceUserId", e)
+        console.log('Can not get workspaceUserId', e);
       }
     }
     if (opts.userCode) {
@@ -107,10 +106,10 @@ export class AuthService {
         );
         if (byCode) return byCode;
       } catch (e) {
-        console.log("Can not get userCode: ", e)
+        console.log('Can not get userCode: ', e);
       }
     }
-   
+
     return null;
   }
 
@@ -188,24 +187,25 @@ export class AuthService {
     const data = this.flattenItemDetail(itemDetail);
 
     const dept =
-      data.departmentCode ??
-      this.pickLookupCode(data.DepartmentLookUp) ??
-      null;
+      data.departmentCode ?? this.pickLookupCode(data.DepartmentLookUp) ?? null;
 
     const pos =
-      data.positionCode ??
-      this.pickLookupCode(data.PositionLookUp) ??
-      null;
+      data.positionCode ?? this.pickLookupCode(data.PositionLookUp) ?? null;
 
     const role =
-      (data.role ?? data.roleCode) ??
+      data.role ??
+      data.roleCode ??
       this.pickLookupCode(data.RoleLookUp) ??
       null;
 
     return {
       username: data.userCode ?? workspaceUserCode ?? username ?? '',
       email: data.email ?? workspaceEmail,
-      fullName: [data.lastName, data.firstName].filter(Boolean).join(' ').trim() || workspace?.username || workspace?.name || null,
+      fullName:
+        [data.lastName, data.firstName].filter(Boolean).join(' ').trim() ||
+        workspace?.username ||
+        workspace?.name ||
+        null,
       workspaceUserId: data.workspaceUserId ?? workspaceUserId,
       itemId: listItem.i_id,
       departmentCode: dept,
