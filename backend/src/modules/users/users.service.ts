@@ -83,6 +83,7 @@ export class UsersService {
     ]);
 
     const datastorePayload = {
+      userId: createUserDto.userId,
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
       firstName: createUserDto.firstName,
@@ -189,6 +190,7 @@ export class UsersService {
 
       return {
         key: item.i_id,
+        userId: item.userId || item.userCode || '',
         userCode: item.userCode || '',
         lastName: item.lastName || '',
         lastNameKana: item.lastNameKana || '',
@@ -246,6 +248,7 @@ export class UsersService {
 
     return {
       i_id: item.i_id,
+      userId: item.userId || item.userCode || '',
       userCode: item.userCode || '',
       lastName: item.lastName || '',
       firstName: item.firstName || '',
@@ -298,6 +301,7 @@ export class UsersService {
     }
 
     const updatePayload = {
+      userId: createUserDto.userId,
       userCode: createUserDto.username,
       lastName: createUserDto.lastName,
       firstName: createUserDto.firstName,

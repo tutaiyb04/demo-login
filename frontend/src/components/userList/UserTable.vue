@@ -27,7 +27,7 @@ const handleTableChange = (pagination: TablePaginationConfig) => {
 };
 
 const columns: TableColumnsType = [
-  { title: "ユーザーID", dataIndex: "userCode", key: "userCode", width: 140 },
+  { title: "ユーザーID", dataIndex: "userId", key: "userId", width: 140 },
   { title: "苗字", dataIndex: "lastName", key: "lastName", width: 120 },
   {
     title: "仮名苗字",

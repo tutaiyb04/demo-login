@@ -20,6 +20,7 @@ export interface UserFormState {
 
 export interface UserRecord {
   key: string;
+  userId: string;
   userCode: string;
   lastName: string;
   lastNameKana: string;

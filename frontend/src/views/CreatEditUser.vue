@@ -123,7 +123,7 @@ const fetchUserData = async (id: string) => {
     const response = await api.get(`/users/${id}`);
     const user = response.data;
 
-    formState.userId = user.userCode;
+    formState.userId = user.userId || user.userCode;
     formState.lastName = user.lastName;
     formState.firstName = user.firstName;
     formState.lastNameKana = user.lastNameKana;
@@ -172,6 +172,7 @@ const handleSubmit = async () => {
 
     showLoading();
     const payload = {
+      userId: formState.userId,
       username: formState.userId,
       password: "Abcd@1234",
       email: formState.email,
