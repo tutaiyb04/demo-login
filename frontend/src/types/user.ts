@@ -13,7 +13,7 @@ export interface UserFormState {
   staffCode: string;
   remarks: string;
   role: string | null;
-  isApprover: boolean;
+  isApproval: boolean;
   canProxyApply: boolean;
   canProxyApprove: boolean;
 }

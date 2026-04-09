@@ -97,17 +97,17 @@ export class UsersService {
       email: createUserDto.email,
       startDate: createUserDto.startDate,
       remarks: createUserDto.remarks,
-      isApprover: createUserDto.isApprover
-        ? [this.hxbConfig.isApproverTrueOptionId]
-        : [this.hxbConfig.isApproverFalseOptionId],
+      isApproval: createUserDto.isApproval
+        ? this.hxbConfig.isApproverTrueOptionId
+        : this.hxbConfig.isApproverFalseOptionId,
 
       canProxyApply: createUserDto.canProxyApply
-        ? [this.hxbConfig.canProxyApplyTrueOptionId]
-        : [this.hxbConfig.canProxyApplyFalseOptionId],
+        ? this.hxbConfig.canProxyApplyTrueOptionId
+        : this.hxbConfig.canProxyApplyFalseOptionId,
 
       canProxyApprove: createUserDto.canProxyApprove
-        ? [this.hxbConfig.canProxyApproveTrueOptionId]
-        : [this.hxbConfig.canProxyApproveFalseOptionId],
+        ? this.hxbConfig.canProxyApproveTrueOptionId
+        : this.hxbConfig.canProxyApproveFalseOptionId,
       workspaceUserId:
         workspaceUser.user_profile?.u_id ||
         workspaceUser.u_id ||
@@ -238,9 +238,9 @@ export class UsersService {
     const posCode = item.positionCode || item.PositionLookUp || null;
     const rlCode = item.role || item.RoleLookUp || 'GUEST';
 
-    const checkValue = (val: any) => {
-      if (Array.isArray(val)) return val[0] === 'true';
-      return val === 'true';
+    const checkRadio = (val: any, trueId: string) => {
+      if (Array.isArray(val)) return val.includes(trueId);
+      return val === trueId;
     };
 
     return {
@@ -257,19 +257,18 @@ export class UsersService {
       startDate: item.startDate || null,
       staffCode: item.staffCode || '',
       remarks: item.remarks || '',
-      isApprover: Array.isArray(item.isApprover)
-        ? item.isApprover.includes(this.hxbConfig.isApproverTrueOptionId)
-        : false,
-
-      canProxyApply: Array.isArray(item.canProxyApply)
-        ? item.canProxyApply.includes(this.hxbConfig.canProxyApplyTrueOptionId)
-        : false,
-
-      canProxyApprove: Array.isArray(item.canProxyApprove)
-        ? item.canProxyApprove.includes(
-            this.hxbConfig.canProxyApproveTrueOptionId,
-          )
-        : false,
+      isApproval: checkRadio(
+        item.isApproval,
+        this.hxbConfig.isApproverTrueOptionId,
+      ),
+      canProxyApply: checkRadio(
+        item.canProxyApply,
+        this.hxbConfig.canProxyApplyTrueOptionId,
+      ),
+      canProxyApprove: checkRadio(
+        item.canProxyApprove,
+        this.hxbConfig.canProxyApproveTrueOptionId,
+      ),
     };
   }
 
@@ -322,17 +321,17 @@ export class UsersService {
       startDate: createUserDto.startDate,
       staffCode: createUserDto.staffCode,
       remarks: createUserDto.remarks,
-      isApprover: createUserDto.isApprover
-        ? [this.hxbConfig.isApproverTrueOptionId]
-        : [this.hxbConfig.isApproverFalseOptionId],
+      isApproval: createUserDto.isApproval
+        ? this.hxbConfig.isApproverTrueOptionId
+        : this.hxbConfig.isApproverFalseOptionId,
 
       canProxyApply: createUserDto.canProxyApply
-        ? [this.hxbConfig.canProxyApplyTrueOptionId]
-        : [this.hxbConfig.canProxyApplyFalseOptionId],
+        ? this.hxbConfig.canProxyApplyTrueOptionId
+        : this.hxbConfig.canProxyApplyFalseOptionId,
 
       canProxyApprove: createUserDto.canProxyApprove
-        ? [this.hxbConfig.canProxyApproveTrueOptionId]
-        : [this.hxbConfig.canProxyApproveFalseOptionId],
+        ? this.hxbConfig.canProxyApproveTrueOptionId
+        : this.hxbConfig.canProxyApproveFalseOptionId,
       workspaceUserId: target.workspaceUserId || '',
     };
 

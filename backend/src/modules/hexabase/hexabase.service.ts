@@ -211,7 +211,6 @@ export class HexabaseService {
       return_item_result: true,
     };
 
-    console.log(body);
     if (typeof revNo === 'number') {
       body.rev_no = revNo;
     } else {

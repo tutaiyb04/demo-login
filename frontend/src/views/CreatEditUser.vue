@@ -29,7 +29,7 @@ const formState = reactive<UserFormState>({
   staffCode: "",
   remarks: "",
   role: null,
-  isApprover: false,
+  isApproval: false,
   canProxyApply: false,
   canProxyApprove: false,
 });
@@ -133,7 +133,7 @@ const fetchUserData = async (id: string) => {
     formState.staffCode = user.staffCode;
     formState.remarks = user.remarks;
     formState.role = user.roleCode;
-    formState.isApprover = !!user.isApprover;
+    formState.isApproval = !!user.isApproval;
     formState.canProxyApply = !!user.canProxyApply;
     formState.canProxyApprove = !!user.canProxyApprove;
 
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
       staffCode: formState.staffCode,
       remarks: formState.remarks,
       roleCode: formState.role,
-      isApprover: formState.isApprover,
+      isApproval: formState.isApproval,
       canProxyApply: formState.canProxyApply,
       canProxyApprove: formState.canProxyApprove,
     };

@@ -69,7 +69,7 @@ export class CreateUserDto {
 
   @IsBoolean()
   @IsOptional()
-  isApprover?: boolean;
+  isApproval?: boolean;
 
   @IsBoolean()
   @IsOptional()

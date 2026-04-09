@@ -38,7 +38,7 @@ defineProps<{
         <template #label
           ><span class="!font-bold text-[1.6rem]">承認権限</span></template
         >
-        <a-checkbox v-model:checked="formState.isApprover">
+        <a-checkbox v-model:checked="formState.isApproval">
           承認者に設定する
         </a-checkbox>
       </a-form-item>
