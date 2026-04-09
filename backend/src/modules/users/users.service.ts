@@ -238,9 +238,10 @@ export class UsersService {
     const posCode = item.positionCode || item.PositionLookUp || null;
     const rlCode = item.role || item.RoleLookUp || 'GUEST';
 
-    const checkRadio = (val: any, trueId: string) => {
-      if (Array.isArray(val)) return val.includes(trueId);
-      return val === trueId;
+    const checkOption = (val: any) => {
+      if (!val) return false;
+      if (Array.isArray(val)) return val.includes('true');
+      return String(val).toLowerCase() === 'true';
     };
 
     return {
@@ -257,18 +258,9 @@ export class UsersService {
       startDate: item.startDate || null,
       staffCode: item.staffCode || '',
       remarks: item.remarks || '',
-      isApproval: checkRadio(
-        item.isApproval,
-        this.hxbConfig.isApproverTrueOptionId,
-      ),
-      canProxyApply: checkRadio(
-        item.canProxyApply,
-        this.hxbConfig.canProxyApplyTrueOptionId,
-      ),
-      canProxyApprove: checkRadio(
-        item.canProxyApprove,
-        this.hxbConfig.canProxyApproveTrueOptionId,
-      ),
+      isApproval: checkOption(item.isApproval),
+      canProxyApply: checkOption(item.canProxyApply),
+      canProxyApprove: checkOption(item.canProxyApprove),
     };
   }
 
