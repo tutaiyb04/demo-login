@@ -9,6 +9,9 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class HexabaseService {
+  checkDepartmentExists: any;
+  checkUserExists: any;
+  checkRoleExists: any;
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,

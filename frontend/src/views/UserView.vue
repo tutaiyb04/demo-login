@@ -6,8 +6,10 @@ import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import type { UserRecord } from "@/types/user";
+import { useLoading } from "@/composables/useLoading";
 
 const router = useRouter();
+const { showLoading, hideLoading } = useLoading();
 
 const currentPage = ref(1);
 const pageSize = ref(10);
@@ -19,6 +21,7 @@ const searchResultsCount = ref<number>(0);
 const dataSource = ref<UserRecord[]>([]);
 
 const fetchUsers = async () => {
+  showLoading();
   try {
     const response = await api.get("/users", {
       params: { page: currentPage.value, perPage: pageSize.value },
@@ -32,6 +35,8 @@ const fetchUsers = async () => {
     message.error(
       "Lỗi tải dữ liệu. Có thể Token đã hết hạn, vui lòng đăng nhập lại!",
     );
+  } finally {
+    hideLoading();
   }
 };
 

@@ -56,6 +56,7 @@ const isSaveDisabled = computed(() => {
 });
 
 const fetchRoles = async () => {
+  showLoading();
   try {
     const response = await api.get("/roles");
 
@@ -65,6 +66,8 @@ const fetchRoles = async () => {
     }));
   } catch (error) {
     message.error("Lỗi khi tải danh sách phân quyền");
+  } finally {
+    hideLoading();
   }
 };
 

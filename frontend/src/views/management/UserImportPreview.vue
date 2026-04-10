@@ -1,48 +1,13 @@
-<script setup>
+<script setup lang="ts">
+import PreviewActions from "@/components/userImportPreview/PreviewActions.vue";
+import PreviewSummary from "@/components/userImportPreview/PreviewSummary.vue";
+import PreviewTable from "@/components/userImportPreview/PreviewTable.vue";
+import type { PreviewRecord } from "@/types/UserImport";
 import { ref, computed } from "vue";
 
-// Biến động chứa tên file
 const fileName = ref("importuser -OK -1 - ShiftJs 2.csv");
 
-// ĐÃ THÊM THUỘC TÍNH `width` CHO TẤT CẢ CÁC CỘT
-const columns = [
-  { title: "操作", key: "action", width: 80, align: "left" },
-  { title: "ユーザーID", dataIndex: "userId", key: "userId", width: 120 },
-  { title: "名前", dataIndex: "firstName", key: "firstName", width: 100 },
-  {
-    title: "仮名名前",
-    dataIndex: "kanaFirstName",
-    key: "kanaFirstName",
-    width: 120,
-  },
-  { title: "苗字", dataIndex: "lastName", key: "lastName", width: 100 },
-  {
-    title: "仮名苗字",
-    dataIndex: "kanaLastName",
-    key: "kanaLastName",
-    width: 120,
-  },
-  {
-    title: "ユーザー分類",
-    dataIndex: "userCategory",
-    key: "userCategory",
-    width: 120,
-  },
-  { title: "部署コード", dataIndex: "deptCode", key: "deptCode", width: 120 },
-  { title: "役割コード", dataIndex: "roleCode", key: "roleCode", width: 120 },
-  { title: "権限ID", dataIndex: "authId", key: "authId", width: 120 },
-  { title: "メールアドレス", dataIndex: "email", key: "email", width: 200 }, // Email cho rộng hẳn ra
-  { title: "利用開始日", dataIndex: "startDate", key: "startDate", width: 120 },
-  {
-    title: "スタッフコード",
-    dataIndex: "staffCode",
-    key: "staffCode",
-    width: 130,
-  },
-  { title: "備考", dataIndex: "remarks", key: "remarks", width: 150 },
-];
-
-const previewData = ref([
+const previewData = ref<PreviewRecord[]>([
   {
     id: 1,
     actionType: "削除",
@@ -97,6 +62,17 @@ const previewData = ref([
 ]);
 
 const totalRecords = computed(() => (previewData.value.length > 0 ? 20 : 0));
+
+// --- Handlers ---
+const handleBack = () => {
+  console.log("Quay lại màn hình trước...");
+  // router.back();
+};
+
+const handleExecute = () => {
+  console.log("Thực thi batch...");
+  // Gọi API chạy batch ở đây
+};
 </script>
 
 <template>
@@ -108,44 +84,11 @@ const totalRecords = computed(() => (previewData.value.length > 0 ? 20 : 0));
         </div>
       </template>
 
-      <div
-        class="bg-[#f7f7f7] py-5 px-7 mb-4 text-[1.4rem] font-bold text-gray-700 rounded"
-      >
-        レコード合計: {{ totalRecords }}
-      </div>
+      <PreviewSummary :total="totalRecords" />
 
-      <a-table
-        class="preview-table text-[14px]"
-        :columns="columns"
-        :data-source="previewData"
-        :scroll="{ x: 'max-content' }"
-        :pagination="{ pageSize: 10, position: ['bottomCenter'] }"
-        row-key="id"
-      >
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'action'">
-            <span class="text-[14px]">
-              {{ record.actionType }}
-            </span>
-          </template>
-        </template>
-      </a-table>
+      <PreviewTable :data-source="previewData" />
 
-      <div class="flex justify-center items-center gap-8 mt-10 pt-6">
-        <a-button
-          size="large"
-          class="!h-15 !min-w-[200px] !px-12 !rounded !font-bold text-[1.4rem]! !border-[#0072c6] !text-[#0072c6]"
-        >
-          戻る
-        </a-button>
-        <a-button
-          type="primary"
-          size="large"
-          class="!h-15 !min-w-[200px] !px-12 !rounded !font-bold text-[1.4rem]! !bg-[#0072c6] !border-[#0072c6]"
-        >
-          バッチ実行
-        </a-button>
-      </div>
+      <PreviewActions @back="handleBack" @execute="handleExecute" />
     </a-card>
   </div>
 </template>
@@ -153,31 +96,5 @@ const totalRecords = computed(() => (previewData.value.length > 0 ? 20 : 0));
 <style scoped>
 :deep(.ant-card-head) {
   border-bottom: none !important;
-}
-
-.preview-table :deep(.ant-table-thead > tr > th) {
-  padding: 6px 12px !important;
-  line-height: 1.25;
-  font-size: inherit;
-  font-weight: 700;
-  background-color: #ececec !important;
-  color: #333;
-  border-bottom: 1px solid #f0f0f0 !important;
-  white-space: nowrap;
-}
-
-.preview-table :deep(.ant-table-thead > tr > th::before) {
-  display: block !important;
-  background-color: rgba(0, 0, 0, 0.08) !important;
-}
-
-.preview-table :deep(.ant-pagination) {
-  margin-top: 16px !important;
-}
-
-.preview-table :deep(.ant-pagination-item),
-.preview-table :deep(.ant-pagination-prev),
-.preview-table :deep(.ant-pagination-next) {
-  font-size: inherit;
 }
 </style>

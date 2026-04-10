@@ -12,6 +12,8 @@ import { HexabaseModule } from './modules/hexabase/hexabase.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { RolesModule } from './modules/roles/roles.module';
+import { UserImportCsvController } from './modules/user-import-csv/user-import-csv.controller';
+import { UserImportCsvModule } from './modules/user-import-csv/user-import-csv.module';
 import hexabaseConfig from './config/hexabase.config';
 
 @Module({
@@ -23,8 +25,9 @@ import hexabaseConfig from './config/hexabase.config';
     DepartmentsModule,
     PositionsModule,
     RolesModule,
+    UserImportCsvModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UserImportCsvController],
   providers: [
     AppService,
     {
