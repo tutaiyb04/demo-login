@@ -85,7 +85,9 @@ const downloadTemplate = async () => {
   isDownloading.value = true;
   showLoading();
   try {
-    const response = await api.get("/users/import/template");
+    const response = await api.get("/users/import/template", {
+      responseType: "blob",
+    });
 
     // Xử lý tạo link ảo để trình duyệt tải file Blob về máy
     const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -164,30 +166,34 @@ const handleUpload = async () => {
   const fileToUpload = getRawFile();
   if (!selectedDepartment.value || !fileToUpload) return;
 
+  // Kiểm tra đuôi file trước khi gửi
+  if (!fileToUpload.name.toLowerCase().endsWith(".csv")) {
+    message.error("CSVファイルを選択してください。");
+    return;
+  }
+
   isUploading.value = true;
   showLoading();
   try {
-    // Đóng gói dữ liệu thành dạng form-data
     const formData = new FormData();
     formData.append("departmentId", selectedDepartment.value);
     formData.append("file", fileToUpload);
 
-    await api.post("/users/import", formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    await api.post("/users/import", formData);
 
     message.success("アップロードに成功しました。");
 
-    // Dọn dẹp form sau khi upload thành công
     fileList.value = [];
     selectedDepartment.value = undefined;
-
-    // Tuỳ chọn: Điều hướng về màn hình quản lý lịch sử import
-    // router.push("/user-import-management");
   } catch (error: any) {
-    const errorMsg =
-      error.response?.data?.message || "アップロードに失敗しました。";
-    message.error(errorMsg);
+    if (error.response?.status === 400 && error.response?.data?.errors) {
+      errorList.value = error.response.data.errors;
+      isErrorModalVisible.value = true;
+    } else {
+      const errorMsg =
+        error.response?.data?.message || "アップロードに失敗しました。";
+      message.error(errorMsg);
+    }
   } finally {
     isUploading.value = false;
     hideLoading();
@@ -246,37 +252,41 @@ const handleUpload = async () => {
   </a-modal>
 
   <a-modal
-    v-model:open="isPreviewModalVisible"
-    title="プレビュー"
+    v-model:open="isErrorModalVisible"
+    title="ユーザーインポートエラー"
     :footer="null"
-    width="1000px"
+    width="850px"
     centered
-    wrapClassName="preview-modal"
   >
-    <div class="mb-4 text-[#0072c6] font-bold text-[1.4rem]">
-      以下のデータがインポートされます（最初の20件を表示）
+    <div class="mb-4 text-[#333] text-[1.4rem]">
+      エラーレコード合計 <span class="font-bold">{{ errorList.length }}</span>
     </div>
+
     <a-table
-      :columns="previewColumns"
-      :data-source="previewData"
-      :pagination="false"
-      :scroll="{ x: 'max-content', y: 400 }"
+      :columns="errorColumns"
+      :data-source="errorList"
+      :pagination="{ pageSize: 10, position: ['bottomCenter'] }"
       size="middle"
-    />
-    <div class="flex justify-end mt-6">
-      <a-button
-        type="primary"
-        @click="
-          () => {
-            isPreviewModalVisible = false;
-            handleUpload();
-          }
-        "
-        class="!bg-[#0072c6] !h-[40px] text-[1.4rem]"
-        :loading="isUploading"
-      >
-        アップロードを実行する
-      </a-button>
-    </div>
+      row-key="rowIndex"
+      bordered
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.key === 'rowIndex'">
+          {{ record.rowIndex }}
+        </template>
+
+        <template v-if="column.key === 'message'">
+          <ul class="list-disc pl-5 m-0 text-left">
+            <li
+              v-for="(msg, idx) in record.message"
+              :key="idx"
+              class="text-[#333]"
+            >
+              {{ msg }}
+            </li>
+          </ul>
+        </template>
+      </template>
+    </a-table>
   </a-modal>
 </template>

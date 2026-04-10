@@ -6,6 +6,7 @@ export default registerAs('hexabase', () => ({
   departmentDatastoreId: process.env.HEXABASE_DEPARTMENT_DATASTORE_ID || '',
   positionDatastoreId: process.env.HEXABASE_POSITION_DATASTORE_ID || '',
   roleDatastoreId: process.env.HEXABASE_ROLE_DATASTORE_ID || '',
+  importDatastoreId: process.env.HEXABASE_IMPORT_DATASTORE_ID || '',
   workspaceId: process.env.HEXABASE_WORKSPACE_ID || '',
   groupId: process.env.HEXABASE_GROUP_ID || '',
   isApproverTrueOptionId: process.env.IS_APPROVER_TRUE_OPTION_ID || '',

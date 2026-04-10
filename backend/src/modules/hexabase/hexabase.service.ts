@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { firstValueFrom } from 'rxjs';
+import FormData from 'form-data';
 
 @Injectable()
 export class HexabaseService {
@@ -312,6 +313,31 @@ export class HexabaseService {
       return response.data.result.value;
     } catch (error) {
       throw this.handleError(error, 'Can not get AutoNumber from Hexabase');
+    }
+  }
+
+  async uploadFile(file: Express.Multer.File, token: string) {
+    try {
+      const url = `${this.baseUrl}files`;
+
+      const formData = new FormData();
+      formData.append('file', file.buffer, {
+        filename: encodeURIComponent(file.originalname),
+        contentType: file.mimetype,
+      });
+
+      const response = await firstValueFrom(
+        this.httpService.post(url, formData, {
+          headers: {
+            ...this.getHeaders(token),
+            ...formData.getHeaders(),
+          },
+        }),
+      );
+
+      return response.data;
+    } catch (error) {
+      throw this.handleError(error, 'Không thể upload file lên Hexabase');
     }
   }
 }

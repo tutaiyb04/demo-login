@@ -15,6 +15,7 @@ import { RolesModule } from './modules/roles/roles.module';
 import { UserImportCsvController } from './modules/user-import-csv/user-import-csv.controller';
 import { UserImportCsvModule } from './modules/user-import-csv/user-import-csv.module';
 import hexabaseConfig from './config/hexabase.config';
+import { UserImportCsvService } from './modules/user-import-csv/user-import-csv.service';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import hexabaseConfig from './config/hexabase.config';
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
+    UserImportCsvService,
   ],
 })
 export class AppModule {}

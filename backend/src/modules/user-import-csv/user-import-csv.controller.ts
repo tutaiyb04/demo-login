@@ -1,4 +1,66 @@
-import { Controller } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+import type { Response } from 'express';
+import { UserImportCsvService } from './user-import-csv.service';
+import { FileInterceptor } from '@nestjs/platform-express';
 
-@Controller('user-import-csv')
-export class UserImportCsvController {}
+@Controller('users/import')
+export class UserImportCsvController {
+  constructor(private readonly userImportCsvService: UserImportCsvService) {}
+
+  @Post()
+  @UseInterceptors(FileInterceptor('file'))
+  async upload(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('departmentId') departmentId: string,
+    @Req() req: any,
+  ) {
+    const user = req.user;
+
+    console.log(user);
+
+    const hxbToken = user?.hxbToken;
+
+    console.log(hxbToken);
+
+    if (!hxbToken) {
+      throw new UnauthorizedException('Không tìm thấy token của Hexabase');
+    }
+
+    return await this.userImportCsvService.processUpload(
+      file,
+      departmentId,
+      hxbToken,
+    );
+  }
+
+  @Get('template')
+  async downloadTemplate(@Res() res: Response) {
+    const buffer = await this.userImportCsvService.getImportTemplate();
+
+    const fileName = 'user_import_template.csv';
+
+    // Thiết lập các Header cho phản hồi HTTP
+    res.set({
+      'Content-Type': 'text/csv; charset=utf-8',
+      'Content-Disposition': `attachment; filename="${encodeURIComponent(fileName)}"`,
+      'Content-Length': buffer.length,
+    });
+
+    // Gửi buffer về phía client
+    return res.end(buffer);
+  }
+}

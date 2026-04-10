@@ -1,5 +1,15 @@
-import { Injectable } from '@nestjs/common';
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/require-await */
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { HexabaseService } from '../hexabase/hexabase.service';
+import type { ConfigType } from '@nestjs/config';
+import hexabaseConfig from '@/config/hexabase.config';
+import * as csv from 'csv-parse/sync';
+import 'multer';
 
 export interface ValidationError {
   rowIndex: number;
@@ -11,7 +21,11 @@ type CsvRow = Record<string, unknown>;
 
 @Injectable()
 export class UserImportCsvService {
-  constructor(private readonly hexabaseService: HexabaseService) {}
+  constructor(
+    @Inject(hexabaseConfig.KEY)
+    private hxbConfig: ConfigType<typeof hexabaseConfig>,
+    private readonly hexabaseService: HexabaseService,
+  ) {}
 
   async validateCsvData(
     csvRows: CsvRow[],
@@ -145,5 +159,109 @@ export class UserImportCsvService {
     }
 
     return errors;
+  }
+
+  async processUpload(
+    file: Express.Multer.File,
+    departmentId: string,
+    token: string,
+  ) {
+    // 1. Kiểm tra định dạng file CSV
+    if (file.mimetype !== 'text/csv' && !file.originalname.endsWith('.csv')) {
+      throw new BadRequestException('File gửi lên phải là định dạng CSV');
+    }
+
+    // 2. Parse nội dung CSV
+    let records: any[];
+    try {
+      const content = file.buffer.toString('utf-8').replace(/^\ufeff/, '');
+      records = csv.parse(content, { columns: true, skip_empty_lines: true });
+    } catch (e) {
+      throw new BadRequestException('Không thể đọc nội dung file CSV');
+    }
+
+    // 3. Gọi hàm validate hiện tại của bạn
+    const rawErrors = await this.validateCsvData(records, departmentId);
+
+    // 4. Nếu có lỗi, nhóm lại theo rowIndex để hiển thị popup
+    if (rawErrors.length > 0) {
+      const groupedErrors = rawErrors.reduce((acc: any, err) => {
+        const existing = acc.find((i: any) => i.rowIndex === err.rowIndex + 2); // +2 vì tính cả header và index 0
+        if (existing) {
+          existing.message.push(err.message);
+        } else {
+          acc.push({ rowIndex: err.rowIndex + 2, message: [err.message] });
+        }
+        return acc;
+      }, []);
+
+      throw new BadRequestException({
+        message: 'Validation Failed',
+        errors: groupedErrors,
+      });
+    }
+
+    // 5. Nếu OK -> Upload lên Hexabase và lưu vào bảng ImportEmployeeManagement
+    const projectId = this.hxbConfig.projectId;
+    const datastoreId = this.hxbConfig.importDatastoreId;
+
+    const uploadRes = await this.hexabaseService.uploadFile(file, token);
+
+    const payload = {
+      EmployeeDataFile: uploadRes.file_id,
+      EmployeeDataFileName: file.originalname,
+      StatusImport: '待機中',
+      UploadDate: new Date().toISOString(),
+      TotalEmployee: records.length,
+    };
+
+    return await this.hexabaseService.createItem(
+      projectId,
+      datastoreId,
+      payload,
+      token,
+    );
+  }
+
+  async getImportTemplate(): Promise<Buffer> {
+    const headers = [
+      '操作',
+      'ユーザーID',
+      '名前',
+      '仮名名前',
+      '苗字',
+      '仮名苗字',
+      'ユーザー分類',
+      '部署コード',
+      '役割コード',
+      '権限ID',
+      'メールアドレス',
+      '利用開始日',
+      'スタッフコード',
+      '備考',
+    ];
+
+    const exampleRow = [
+      '新規', // 操作: 新規, 更新, 削除
+      'USER_001',
+      '太郎',
+      'タロウ',
+      '山田',
+      'ヤマダ',
+      '正社員',
+      'DEPT_001',
+      'ROLE_001',
+      'AUTH_001',
+      'test@example.com',
+      '2024/04/01',
+      'STF_001',
+      '備考メモ',
+    ];
+
+    // Kết hợp header và row thành chuỗi CSV (cách nhau bởi dấu phẩy)
+    const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
+
+    // Thêm BOM (UTF-8) để Excel nhận diện đúng font tiếng Nhật
+    return Buffer.from('\ufeff' + csvContent, 'utf-8');
   }
 }
