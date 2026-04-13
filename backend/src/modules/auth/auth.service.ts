@@ -18,7 +18,6 @@ type AuthInfoResponse = {
   departmentCode: string | null;
   positionCode: string | null;
   roleCode: string | null;
-  // optional “nice to have” (nếu bạn map được)
   departmentName?: string | null;
   positionName?: string | null;
   roleName?: string | null;
@@ -150,19 +149,20 @@ export class AuthService {
 
   async getInfo(userPayload: any): Promise<AuthInfoResponse> {
     const { username, hxbToken } = userPayload;
-    // 1) Always lấy workspace profile trước (không phụ thuộc datastore)
+
     const workspace = await this.hexabaseService.getUserInfo(hxbToken);
     const workspaceUserId =
       workspace?.u_id ?? workspace?.id ?? workspace?.user_id ?? null;
     const workspaceUserCode =
       workspace?.user_code ?? workspace?.userCode ?? username ?? null;
     const workspaceEmail = workspace?.email ?? null;
-    // 2) Tìm record trong user datastore để lấy itemId
+
     const listItem = await this.findUserItemInDatastore(hxbToken, {
       workspaceUserId,
       userCode: workspaceUserCode,
       email: workspaceEmail,
     });
+
     // 3) Không có record datastore => vẫn trả profile workspace + codes null
     if (!listItem?.i_id) {
       return {
@@ -176,6 +176,7 @@ export class AuthService {
         roleCode: null,
       };
     }
+
     // 4) Có itemId => lấy detail item để lấy codes/fields
     const itemDetail = await this.hexabaseService.getItemDetail(
       this.hxbConfig.projectId,

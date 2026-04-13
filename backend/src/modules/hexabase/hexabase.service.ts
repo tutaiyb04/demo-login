@@ -322,7 +322,7 @@ export class HexabaseService {
 
       const formData = new FormData();
       formData.append('file', file.buffer, {
-        filename: encodeURIComponent(file.originalname),
+        filename: file.originalname,
         contentType: file.mimetype,
       });
 
@@ -338,6 +338,23 @@ export class HexabaseService {
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Không thể upload file lên Hexabase');
+    }
+  }
+
+  async downloadFile(fileId: string, token: string): Promise<Buffer> {
+    try {
+      const url = `${this.baseUrl}files/${fileId}`;
+
+      const response = await firstValueFrom(
+        this.httpService.get(url, {
+          headers: this.getHeaders(token),
+          responseType: 'arraybuffer',
+        }),
+      );
+
+      return Buffer.from(response.data as ArrayBuffer);
+    } catch (error) {
+      throw this.handleError(error, 'Không thể download file từ Hexabase');
     }
   }
 }

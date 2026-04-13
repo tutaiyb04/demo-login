@@ -5,7 +5,6 @@ import { useRouter } from "vue-router";
 import { useLoading } from "@/composables/useLoading";
 import type { Department } from "@/types/UserImport";
 
-// Import các component con (GIỮ NGUYÊN KHÔNG ĐỔI)
 import UserImportHeader from "@/components/userImport/UserImportHeader.vue";
 import UserImportForm from "@/components/userImport/UserImportForm.vue";
 import UserImportActions from "@/components/userImport/UserImportActions.vue";
@@ -14,7 +13,6 @@ import api from "@/utils/axios";
 const { showLoading, hideLoading } = useLoading();
 const router = useRouter();
 
-// --- States ---
 const selectedDepartment = ref<string | undefined>(undefined);
 const fileList = ref<any[]>([]);
 const departmentOptions = ref<Department[]>([]);
@@ -35,14 +33,58 @@ const errorColumns = [
 const isPreviewModalVisible = ref(false);
 const previewData = ref<any[]>([]);
 const previewColumns = [
-  { title: "操作", dataIndex: "操作", key: "action" },
-  { title: "ユーザーID", dataIndex: "ユーザーID", key: "userId" },
-  { title: "名前", dataIndex: "名前", key: "name" },
-  { title: "メールアドレス", dataIndex: "メールアドレス", key: "email" },
-  { title: "部署コード", dataIndex: "部署コード", key: "deptCode" },
+  {
+    title: "操作",
+    dataIndex: "操作",
+    key: "action",
+    width: 80,
+    align: "center" as const,
+  },
+  {
+    title: "ユーザーID",
+    dataIndex: "ユーザーID",
+    key: "userId",
+    width: 120,
+  },
+  { title: "苗字", dataIndex: "苗字", key: "lastName", width: 120 },
+  { title: "名前", dataIndex: "名前", key: "firstName", width: 120 },
+  { title: "仮名苗字", dataIndex: "仮名苗字", key: "kanaLastName", width: 150 },
+  {
+    title: "仮名名前",
+    dataIndex: "仮名名前",
+    key: "kanaFirstName",
+    width: 150,
+  },
+  {
+    title: "ユーザー分類",
+    dataIndex: "ユーザー分類",
+    key: "userCategory",
+    width: 120,
+  },
+  { title: "部署コード", dataIndex: "部署コード", key: "deptCode", width: 120 },
+  { title: "役割コード", dataIndex: "役割コード", key: "roleCode", width: 120 },
+  { title: "権限ID", dataIndex: "権限ID", key: "authId", width: 120 },
+  {
+    title: "メールアドレス",
+    dataIndex: "メールアドレス",
+    key: "email",
+    width: 220,
+  },
+  {
+    title: "利用開始日",
+    dataIndex: "利用開始日",
+    key: "startDate",
+    width: 120,
+  },
+  {
+    title: "スタッフコード",
+    dataIndex: "スタッフコード",
+    key: "staffCode",
+    width: 150,
+  },
+  { title: "備考", dataIndex: "備考", key: "remarks", width: 200 },
 ];
 
-// Trạng thái Disable form
 const isDownloading = ref(false);
 const isPreviewing = ref(false);
 const isUploading = ref(false);
@@ -55,7 +97,6 @@ const isSubmitDisabled = computed(() => {
   return !selectedDepartment.value || fileList.value?.length === 0;
 });
 
-// --- Lifecycle ---
 onMounted(async () => {
   showLoading();
   try {
@@ -73,13 +114,10 @@ onMounted(async () => {
   }
 });
 
-// --- Hàm tiện ích ---
 const getRawFile = () => {
   const currentFile = fileList.value[0];
   return currentFile ? currentFile.originFileObj || currentFile : null;
 };
-
-// --- API Handlers ---
 
 const downloadTemplate = async () => {
   isDownloading.value = true;
@@ -108,7 +146,6 @@ const downloadTemplate = async () => {
     document.body.appendChild(link);
     link.click();
 
-    // Clean up
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
 
@@ -135,12 +172,10 @@ const handlePreview = async () => {
   showLoading();
 
   try {
-    // Đóng gói dữ liệu thành dạng form-data
     const formData = new FormData();
     formData.append("departmentId", selectedDepartment.value);
     formData.append("file", fileToUpload);
 
-    // Gọi API Preview
     const response = await api.post("/users/import/preview", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -166,7 +201,6 @@ const handleUpload = async () => {
   const fileToUpload = getRawFile();
   if (!selectedDepartment.value || !fileToUpload) return;
 
-  // Kiểm tra đuôi file trước khi gửi
   if (!fileToUpload.name.toLowerCase().endsWith(".csv")) {
     message.error("CSVファイルを選択してください。");
     return;
@@ -179,12 +213,17 @@ const handleUpload = async () => {
     formData.append("departmentId", selectedDepartment.value);
     formData.append("file", fileToUpload);
 
-    await api.post("/users/import", formData);
-
+    const response = await api.post("/users/import", formData);
     message.success("アップロードに成功しました。");
 
     fileList.value = [];
     selectedDepartment.value = undefined;
+
+    const importId = response.data?.item_id || response.data?.id;
+
+    if (importId) {
+      router.push({ path: "/user-import-preview", query: { id: importId } });
+    }
   } catch (error: any) {
     if (error.response?.status === 400 && error.response?.data?.errors) {
       errorList.value = error.response.data.errors;
@@ -227,28 +266,25 @@ const handleUpload = async () => {
   </div>
 
   <a-modal
-    v-model:open="isErrorModalVisible"
-    title="エラー確認"
+    v-model:open="isPreviewModalVisible"
+    title="インポートデータのプレビュー"
     :footer="null"
-    width="800px"
+    width="900px"
     centered
   >
-    <div class="mb-4 text-[#f5222d] font-bold text-[1.4rem]">
-      エラーレコード合計: {{ errorList.length }} 件
+    <div class="mb-4 text-[#333] text-[1.4rem]">
+      ファイルにエラーは見つかりませんでした。以下の内容でインポートされます。
     </div>
+
     <a-table
-      :columns="errorColumns"
-      :data-source="errorList"
-      :pagination="{ pageSize: 10 }"
+      :columns="previewColumns"
+      :data-source="previewData"
+      :pagination="false"
+      :scroll="{ x: 1900, y: 400 }"
       size="middle"
-      row-key="rowIndex"
-    >
-      <template #bodyCell="{ column, record }">
-        <template v-if="column.key === 'rowIndex'">
-          {{ record.rowIndex + 1 }}
-        </template>
-      </template>
-    </a-table>
+      row-key="ユーザーID"
+      bordered
+    />
   </a-modal>
 
   <a-modal

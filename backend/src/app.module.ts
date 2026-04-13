@@ -12,10 +12,8 @@ import { HexabaseModule } from './modules/hexabase/hexabase.module';
 import { DepartmentsModule } from './modules/departments/departments.module';
 import { PositionsModule } from './modules/positions/positions.module';
 import { RolesModule } from './modules/roles/roles.module';
-import { UserImportCsvController } from './modules/user-import-csv/user-import-csv.controller';
 import { UserImportCsvModule } from './modules/user-import-csv/user-import-csv.module';
 import hexabaseConfig from './config/hexabase.config';
-import { UserImportCsvService } from './modules/user-import-csv/user-import-csv.service';
 
 @Module({
   imports: [
@@ -28,14 +26,13 @@ import { UserImportCsvService } from './modules/user-import-csv/user-import-csv.
     RolesModule,
     UserImportCsvModule,
   ],
-  controllers: [AppController, UserImportCsvController],
+  controllers: [AppController],
   providers: [
     AppService,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,
     },
-    UserImportCsvService,
   ],
 })
 export class AppModule {}

@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Req,
   Res,
@@ -47,6 +48,27 @@ export class UserImportCsvController {
     );
   }
 
+  // THÊM API PREVIEW VÀO ĐÂY
+  @Post('preview')
+  @UseInterceptors(FileInterceptor('file'))
+  async preview(
+    @UploadedFile() file: Express.Multer.File,
+    @Body('departmentId') departmentId: string,
+    @Req() req: any,
+  ) {
+    const hxbToken = req.user?.hxbToken;
+    if (!hxbToken) {
+      throw new UnauthorizedException('Không tìm thấy token của Hexabase');
+    }
+
+    // Gọi hàm xử lý Preview ở service
+    return await this.userImportCsvService.processPreview(
+      file,
+      departmentId,
+      hxbToken,
+    );
+  }
+
   @Get('template')
   async downloadTemplate(@Res() res: Response) {
     const buffer = await this.userImportCsvService.getImportTemplate();
@@ -62,5 +84,29 @@ export class UserImportCsvController {
 
     // Gửi buffer về phía client
     return res.end(buffer);
+  }
+
+  @Get(':importId')
+  async getImportDetail(@Param('importId') importId: string, @Req() req: any) {
+    const hxbToken = req.user?.hxbToken;
+    if (!hxbToken) {
+      throw new UnauthorizedException('Không tìm thấy token của Hexabase');
+    }
+
+    return await this.userImportCsvService.getImportDetail(importId, hxbToken);
+  }
+
+  @Post('execute/:importId')
+  async executeBatchImport(
+    @Param('importId') importId: string,
+    @Req() req: any,
+  ) {
+    const hxbToken = req.user?.hxbToken;
+    if (!hxbToken) throw new UnauthorizedException('Không tìm thấy token');
+
+    return await this.userImportCsvService.executeImportData(
+      importId,
+      hxbToken,
+    );
   }
 }

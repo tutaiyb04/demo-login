@@ -1,9 +1,7 @@
-// src/stores/auth.ts
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import api from "@/utils/axios";
 
-// Định nghĩa interface dựa trên data từ Hexabase
 export type AuthInfo = {
   username: string;
   email: string | null;
@@ -22,7 +20,6 @@ export const useAuthStore = defineStore("auth", () => {
   const userInfo = ref<AuthInfo | null>(null);
   const isAuthenticated = ref<boolean>(false);
 
-  // Hàm gọi API /auth/info
   const fetchUserInfo = async () => {
     const response = await api.get<AuthInfo>("/auth/info");
     userInfo.value = response.data;

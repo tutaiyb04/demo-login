@@ -2,76 +2,75 @@
 import PreviewActions from "@/components/userImportPreview/PreviewActions.vue";
 import PreviewSummary from "@/components/userImportPreview/PreviewSummary.vue";
 import PreviewTable from "@/components/userImportPreview/PreviewTable.vue";
+import { useLoading } from "@/composables/useLoading";
 import type { PreviewRecord } from "@/types/UserImport";
-import { ref, computed } from "vue";
+import api from "@/utils/axios";
+import { message } from "ant-design-vue";
+import { ref, computed, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
-const fileName = ref("importuser -OK -1 - ShiftJs 2.csv");
+const router = useRouter();
+const route = useRoute();
+const { showLoading, hideLoading } = useLoading();
 
-const previewData = ref<PreviewRecord[]>([
-  {
-    id: 1,
-    actionType: "削除",
-    userId: "MIZUKI01",
-    firstName: "田中",
-    kanaFirstName: "タナカ",
-    lastName: "一郎",
-    kanaLastName: "イチロウ",
-    userCategory: "管理者",
-    deptCode: "ACFD001",
-    roleCode: "ACFP001",
-    authId: "ROLENEW",
-    email: "na@kaopiz.com",
-    startDate: "2026/04/09",
-    staffCode: "S001",
-    remarks: "-",
-  },
-  {
-    id: 2,
-    actionType: "更新",
-    userId: "MIZUKI02",
-    firstName: "鈴木",
-    kanaFirstName: "スズキ",
-    lastName: "二郎",
-    kanaLastName: "ジロウ",
-    userCategory: "一般",
-    deptCode: "ACFD002",
-    roleCode: "ACFP002",
-    authId: "ROLEUSER",
-    email: "suzuki@kaopiz.com",
-    startDate: "2026/04/10",
-    staffCode: "S002",
-    remarks: "部署変更",
-  },
-  {
-    id: 3,
-    actionType: "消",
-    userId: "MIZUKI03",
-    firstName: "佐藤",
-    kanaFirstName: "サトウ",
-    lastName: "三郎",
-    kanaLastName: "サブロウ",
-    userCategory: "一般",
-    deptCode: "ACFD003",
-    roleCode: "ACFP003",
-    authId: "ROLEUSER",
-    email: "sato@kaopiz.com",
-    startDate: "2026/04/11",
-    staffCode: "S003",
-    remarks: "退職予定",
-  },
-]);
+const previewData = ref<PreviewRecord[]>([]);
+const totalRecords = ref(0);
 
-const totalRecords = computed(() => (previewData.value.length > 0 ? 20 : 0));
+const importId = computed(() => route.query.id as string);
 
-// --- Handlers ---
+onMounted(async () => {
+  if (!importId.value) {
+    message.error("Không tìm thấy dữ liệu Import.");
+    router.push("/user-import-preview");
+    return;
+  }
+
+  showLoading();
+  try {
+    // Gọi API lấy thông tin cấu hình Import từ Backend
+    const response = await api.get(`/users/import/${importId.value}`);
+
+    // Gán dữ liệu thật vào giao diện
+    totalRecords.value = response.data.totalRecords || 0;
+
+    // Lưu ý: previewData tạm thời để rỗng vì dữ liệu từng dòng đang nằm trong file CSV trên Hexabase
+    previewData.value = response.data.previewData || [];
+  } catch (error: any) {
+    console.error(error);
+    message.error("Lấy dữ liệu cấu hình thất bại.");
+  } finally {
+    hideLoading();
+  }
+});
+
 const handleBack = () => {
-  console.log("Quay lại màn hình trước...");
-  // router.back();
+  router.push("/user-import-management");
 };
 
-const handleExecute = () => {
-  console.log("Thực thi batch...");
-  // Gọi API chạy batch ở đây
+const handleExecute = async () => {
+  if (!importId.value) {
+    message.error("Không tìm thấy dữ liệu Import.");
+    return;
+  }
+
+  console.log("Đang thực thi batch với ID:", importId.value);
+  showLoading();
+
+  try {
+    // Gọi API execute ở Backend
+    await api.post(`/users/import/execute/${importId.value}`);
+
+    message.success("インポートを実行しました。"); // Đã thực hiện import
+
+    // Thành công thì đá về trang Quản lý danh sách
+    router.push("/user-import-management");
+  } catch (error: any) {
+    message.error(
+      error.response?.data?.message || "インポートの実行に失敗しました。",
+    );
+  } finally {
+    hideLoading();
+  }
 };
 </script>
 

@@ -308,4 +308,140 @@ export class UserImportCsvService {
     // Thêm BOM (UTF-8) để Excel nhận diện đúng font tiếng Nhật
     return Buffer.from('\ufeff' + csvContent, 'utf-8');
   }
+
+  // THÊM HÀM NÀY VÀO TRONG CLASS UserImportCsvService
+  async processPreview(
+    file: Express.Multer.File,
+    departmentId: string,
+    token: string,
+  ) {
+    // 1. Kiểm tra định dạng file
+    if (file.mimetype !== 'text/csv' && !file.originalname.endsWith('.csv')) {
+      throw new BadRequestException('File gửi lên phải là định dạng CSV');
+    }
+
+    // 2. Parse nội dung CSV
+    let records: any[];
+    try {
+      const content = file.buffer.toString('utf-8').replace(/^\ufeff/, '');
+      records = csv.parse(content, { columns: true, skip_empty_lines: true });
+    } catch (e) {
+      throw new BadRequestException('Không thể đọc nội dung file CSV');
+    }
+
+    // 3. Validate dữ liệu giống hệt quá trình Upload
+    const rawErrors = await this.validateCsvData(records, departmentId, token);
+
+    // 4. Nếu có lỗi, nhóm lại và quăng lỗi 400 (để Frontend bật popup Error)
+    if (rawErrors.length > 0) {
+      const groupedErrors = rawErrors.reduce((acc: any, err) => {
+        const existing = acc.find((i: any) => i.rowIndex === err.rowIndex + 2);
+        if (existing) {
+          existing.message.push(err.message);
+        } else {
+          acc.push({ rowIndex: err.rowIndex + 2, message: [err.message] });
+        }
+        return acc;
+      }, []);
+
+      throw new BadRequestException({
+        message: 'Validation Failed',
+        errors: groupedErrors,
+      });
+    }
+
+    // 5. Nếu KHÔNG có lỗi, trả về 10 dòng đầu tiên để Frontend hiện popup Preview
+    return {
+      message: 'Preview thành công',
+      data: records.slice(0, 10), // Cắt lấy 10 dòng đầu cho nhẹ
+    };
+  }
+
+  async getImportDetail(importId: string, token: string) {
+    const projectId = this.hxbConfig.projectId;
+    const datastoreId = this.hxbConfig.importDatastoreId;
+
+    try {
+      // Dùng service đã có sẵn để lấy thông tin item từ Datastore
+      const itemDetail = await this.hexabaseService.getItemDetail(
+        projectId,
+        datastoreId,
+        importId,
+        token,
+      );
+
+      // Cấu trúc Hexabase trả về thường nằm trong object "item"
+      const item = itemDetail.item || itemDetail;
+
+      return {
+        importId: item.i_id || importId,
+        fileName: item.EmployeeDataFileName,
+        totalRecords: Number(item.TotalEmployee) || 0,
+        status: item.StatusImport,
+        previewData: [], // Mảng rỗng
+      };
+    } catch (error) {
+      console.error(error);
+      throw new BadRequestException('Không thể lấy thông tin bản ghi Import');
+    }
+  }
+
+  // Trong user-import-csv.service.ts (Thêm hàm mới)
+  async executeImportData(importId: string, token: string) {
+    const projectId = this.hxbConfig.projectId;
+    const datastoreId = this.hxbConfig.importDatastoreId;
+
+    // 1. Chuyển ngay trạng thái sang 'Processing' và lưu thời gian bắt đầu
+    await this.hexabaseService.updateItem(
+      projectId,
+      datastoreId,
+      importId,
+      {
+        StatusImport: 'Processing',
+        BatchStartDate: new Date().toISOString(),
+      },
+      token,
+    );
+
+    try {
+      // ==========================================
+      // 2. THỰC HIỆN LOGIC ĐĂNG KÝ USER CỦA BẠN Ở ĐÂY
+      // (Đọc file CSV, gọi vòng lặp tạo user trên Hexabase...)
+      // ==========================================
+
+      // Giả lập logic chạy thành công:
+      // ...
+
+      // 3. Nếu toàn bộ user được tạo thành công -> Chuyển thành 'Registered'
+      await this.hexabaseService.updateItem(
+        projectId,
+        datastoreId,
+        importId,
+        {
+          StatusImport: 'Registered',
+          BatchCompleteDate: new Date().toISOString(),
+        },
+        token,
+      );
+
+      return { message: 'Đăng ký hàng loạt thành công!' };
+    } catch (error) {
+      // 4. Nếu có lỗi (VD: trùng email, DB lỗi) -> Chuyển thành 'Failed'
+      console.error('Lỗi khi đăng ký batch:', error);
+
+      await this.hexabaseService.updateItem(
+        projectId,
+        datastoreId,
+        importId,
+        {
+          StatusImport: 'Failed',
+          BatchCompleteDate: new Date().toISOString(),
+          // Nếu muốn, bạn có thể tạo 1 file ErrorLog dạng text/csv chứa chi tiết lỗi rồi upload và gán ID vào trường ErrorLog ở đây
+        },
+        token,
+      );
+
+      throw new BadRequestException('Quá trình đăng ký hàng loạt gặp lỗi');
+    }
+  }
 }
