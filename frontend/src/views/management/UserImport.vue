@@ -222,7 +222,7 @@ const handleUpload = async () => {
     const importId = response.data?.item_id || response.data?.id;
 
     if (importId) {
-      router.push({ path: "/user-import-preview", query: { id: importId } });
+      router.push({ path: "/user-import", query: { id: importId } });
     }
   } catch (error: any) {
     if (error.response?.status === 400 && error.response?.data?.errors) {

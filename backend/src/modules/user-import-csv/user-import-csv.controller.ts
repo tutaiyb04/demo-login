@@ -30,12 +30,7 @@ export class UserImportCsvController {
     @Req() req: any,
   ) {
     const user = req.user;
-
-    console.log(user);
-
     const hxbToken = user?.hxbToken;
-
-    console.log(hxbToken);
 
     if (!hxbToken) {
       throw new UnauthorizedException('Không tìm thấy token của Hexabase');

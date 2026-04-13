@@ -159,6 +159,7 @@ export class HexabaseService {
           { headers: this.getHeaders(token) },
         ),
       );
+      console.log('response', response.data);
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Can not save data to Datastore');
@@ -321,6 +322,9 @@ export class HexabaseService {
       const url = `${this.baseUrl}files`;
 
       const formData = new FormData();
+      // Official @hexabase/hexabase-js uses `fileName` for POST /api/v0/files; apidoc sometimes says `filename` — send both.
+      formData.append('fileName', file.originalname);
+      formData.append('filename', file.originalname);
       formData.append('file', file.buffer, {
         filename: file.originalname,
         contentType: file.mimetype,

@@ -27,6 +27,22 @@ export class UserImportCsvService {
     private readonly hexabaseService: HexabaseService,
   ) {}
 
+  /** Hexabase may return File fields as string, id[], or expanded objects with `filename`. */
+  private resolveImportCsvDisplayName(item: Record<string, unknown>): string {
+    const fromFields = [item.EmployeeDataFileName, item.EmployeeDataFile];
+    for (const raw of fromFields) {
+      if (typeof raw === 'string' && raw.trim()) return raw;
+      const arr = Array.isArray(raw) ? raw : [];
+      const first = arr[0] as Record<string, unknown> | string | undefined;
+      if (typeof first === 'string' && first.trim()) return first;
+      if (first && typeof first === 'object') {
+        const fn = first.filename ?? first.name;
+        if (typeof fn === 'string' && fn.trim()) return fn;
+      }
+    }
+    return '';
+  }
+
   async validateCsvData(
     csvRows: CsvRow[],
     departmentId: string,
@@ -251,13 +267,22 @@ export class UserImportCsvService {
 
     const uploadRes = await this.hexabaseService.uploadFile(file, token);
 
+    const exactFileId = uploadRes?.file_id || uploadRes?.id || uploadRes;
+    console.log(exactFileId);
+
+    const fileIds = exactFileId ? [exactFileId] : [];
+    // `EmployeeDataFile` = File field → file_id[]. `EmployeeDataFileName` = Text field → original filename string (not an id array).
     const payload = {
-      EmployeeDataFile: [uploadRes.file_id],
+      EmployeeDataFile: fileIds,
       EmployeeDataFileName: file.originalname,
-      StatusImport: '待機中',
+      StatusImport: 'Uploaded',
+      DepartmentCode: departmentId,
       UploadDate: new Date().toISOString(),
       TotalEmployee: records.length,
     };
+
+    console.log('--- KIỂM TRA PAYLOAD TRƯỚC KHI GỬI VÀO CREATE ITEM ---');
+    console.log(JSON.stringify(payload, null, 2));
 
     return await this.hexabaseService.createItem(
       projectId,
@@ -375,7 +400,7 @@ export class UserImportCsvService {
 
       return {
         importId: item.i_id || importId,
-        fileName: item.EmployeeDataFileName,
+        fileName: this.resolveImportCsvDisplayName(item),
         totalRecords: Number(item.TotalEmployee) || 0,
         status: item.StatusImport,
         previewData: [], // Mảng rỗng
