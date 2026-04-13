@@ -326,15 +326,15 @@ export class HexabaseService {
         contentType: file.mimetype,
       });
 
-      const response = await firstValueFrom(
-        this.httpService.post(url, formData, {
-          headers: {
-            ...this.getHeaders(token),
-            ...formData.getHeaders(),
-          },
-        }),
-      );
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        ...formData.getHeaders(),
+      };
+      console.log('--- ĐANG GỬI FILE LÊN HEXABASE (/files) ---');
 
+      const response = await firstValueFrom(
+        this.httpService.post(url, formData, { headers }),
+      );
       return response.data;
     } catch (error) {
       throw this.handleError(error, 'Không thể upload file lên Hexabase');

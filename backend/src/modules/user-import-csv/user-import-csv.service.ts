@@ -30,6 +30,7 @@ export class UserImportCsvService {
   async validateCsvData(
     csvRows: CsvRow[],
     departmentId: string,
+    token: string,
   ): Promise<ValidationError[]> {
     const errors: ValidationError[] = [];
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -68,23 +69,44 @@ export class UserImportCsvService {
     };
     const departmentExistsCache = new Map<string, boolean>();
     const userExistsCache = new Map<string, boolean>();
-    const roleExistsCache = new Map<string, boolean>();
+
+    const projectId = this.hxbConfig.projectId;
+
+    const deptDatastoreId = this.hxbConfig.departmentDatastoreId;
+    const userDatastoreId = this.hxbConfig.userDatastoreId;
+
     const existsInDb = async (
+      datastoreId: string,
+      fieldId: string,
       value: string,
       cache: Map<string, boolean>,
     ): Promise<boolean> => {
       if (cache.has(value)) return cache.get(value) as boolean;
-      const result = await this.hexabaseService.searchItems(
-        '',
-        '',
-        '',
-        1,
-        1,
-        [],
-      );
-      const exists = hasItems(result);
-      cache.set(value, exists);
-      return exists;
+      try {
+        // Build điều kiện tìm kiếm chính xác theo Hexabase
+        const conditions = [
+          {
+            id: fieldId,
+            search_value: [value],
+            exact_match: true,
+          },
+        ];
+
+        const result = await this.hexabaseService.searchItems(
+          projectId,
+          datastoreId,
+          token, // <--- Đã truyền token vào đây để hết lỗi 401
+          1,
+          1,
+          conditions,
+        );
+        const exists = hasItems(result);
+        cache.set(value, exists);
+        return exists;
+      } catch (error) {
+        console.error(`Lỗi tìm kiếm Hexabase Datastore ${datastoreId}:`, error);
+        return false;
+      }
     };
 
     for (let i = 0; i < csvRows.length; i++) {
@@ -92,7 +114,7 @@ export class UserImportCsvService {
 
       for (const field of requiredFields) {
         if (!row[field] || getStringValue(row[field]).trim() === '') {
-          pushError(i, field, `${field} là trường bắt buộc`);
+          pushError(i, field, `${field} は必須項目です`);
         }
       }
 
@@ -104,21 +126,36 @@ export class UserImportCsvService {
       }
 
       if (
+        row['メールアドレス'] &&
+        !emailRegex.test(getStringValue(row['メールアドレス']))
+      ) {
+        pushError(
+          i,
+          'メールアドレス',
+          'メールアドレスの形式が正しくありません',
+        );
+      }
+
+      if (
         row['利用開始日'] &&
         !dateRegex.test(getStringValue(row['利用開始日']))
       ) {
-        pushError(i, '利用開始日', 'Ngày phải đúng định dạng YYYY/MM/DD');
+        pushError(
+          i,
+          '利用開始日',
+          '利用開始日は YYYY/MM/DD 形式で入力してください',
+        );
       }
 
       for (const field of maxLength20) {
         if (row[field] && getStringValue(row[field]).length > 20) {
-          pushError(i, field, `${field} vượt quá 20 ký tự`);
+          pushError(i, field, `${field} は20文字以内で入力してください`);
         }
       }
 
       for (const field of maxLength100) {
         if (row[field] && getStringValue(row[field]).length > 100) {
-          pushError(i, field, `${field} vượt quá 100 ký tự`);
+          pushError(i, field, `${field} は100文字以内で入力してください`);
         }
       }
 
@@ -126,34 +163,41 @@ export class UserImportCsvService {
         pushError(
           i,
           '部署コード',
-          '部署コード không khớp departmentId đã chọn',
+          '該当部署コードと会社コードが一致しません。',
         );
       }
 
       if (row['部署コード']) {
         const departmentCode = getStringValue(row['部署コード']);
         const departmentExists = await existsInDb(
+          deptDatastoreId,
+          'DepartmentCode', // Thay 'DepartmentCode' bằng Field ID thật của cột mã phòng ban trên Hexabase
           departmentCode,
           departmentExistsCache,
         );
         if (!departmentExists) {
-          pushError(i, '部署コード', 'Department not found trong DB');
+          pushError(
+            i,
+            '部署コード',
+            `部署コード「${departmentCode}」はマスターデータに存在しません`,
+          );
         }
       }
 
       if (row['ユーザーID']) {
         const userId = getStringValue(row['ユーザーID']);
-        const userExists = await existsInDb(userId, userExistsCache);
+        const userExists = await existsInDb(
+          userDatastoreId,
+          'userId', // Thay 'UserId' bằng Field ID thật của cột user id trên Hexabase
+          userId,
+          userExistsCache,
+        );
         if (!userExists) {
-          pushError(i, 'ユーザーID', 'User not found trong DB');
-        }
-      }
-
-      if (row['役割コード']) {
-        const roleCode = getStringValue(row['役割コード']);
-        const roleExists = await existsInDb(roleCode, roleExistsCache);
-        if (!roleExists) {
-          pushError(i, '役割コード', 'Role not found trong DB');
+          pushError(
+            i,
+            'ユーザーID',
+            `ユーザーID「${userId}」は存在していません。`,
+          );
         }
       }
     }
@@ -181,7 +225,7 @@ export class UserImportCsvService {
     }
 
     // 3. Gọi hàm validate hiện tại của bạn
-    const rawErrors = await this.validateCsvData(records, departmentId);
+    const rawErrors = await this.validateCsvData(records, departmentId, token);
 
     // 4. Nếu có lỗi, nhóm lại theo rowIndex để hiển thị popup
     if (rawErrors.length > 0) {
@@ -208,7 +252,7 @@ export class UserImportCsvService {
     const uploadRes = await this.hexabaseService.uploadFile(file, token);
 
     const payload = {
-      EmployeeDataFile: uploadRes.file_id,
+      EmployeeDataFile: [uploadRes.file_id],
       EmployeeDataFileName: file.originalname,
       StatusImport: '待機中',
       UploadDate: new Date().toISOString(),
