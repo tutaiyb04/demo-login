@@ -221,9 +221,67 @@ export class UserImportCsvService {
     return errors;
   }
 
+  // backend/src/modules/user-import-csv/user-import-csv.service.ts
+
+  async findAll(token: string, page: number = 1, perPage: number = 10) {
+    const projectId = this.hxbConfig.projectId;
+    const datastoreId = this.hxbConfig.importDatastoreId;
+
+    // Gọi searchItems không kèm điều kiện để lấy toàn bộ
+    const res = await this.hexabaseService.searchItems(
+      projectId,
+      datastoreId,
+      token,
+      page,
+      perPage,
+      [], // Không lọc, lấy tất cả
+    );
+
+    // Map dữ liệu Hexabase sang định dạng Frontend (ImportRecord)
+    const items = (res.items || []).map((item: any) => ({
+      id: item.i_id,
+      fileName: item.EmployeeDataFileName || 'N/A',
+      // Nếu StatusImport trả về ID, bạn có thể viết hàm resolve label ở đây
+      status: item.StatusImport || 'N/A',
+      uploadTime: item.UploadDate ? item.UploadDate : '',
+      uploaderName: item.UploadUser || 'Unknown',
+      completionTime: item.BatchCompleteDate || '',
+    }));
+
+    return {
+      items,
+      total: res.total || 0,
+    };
+  }
+
+  private async findLookupItemId(
+    datastoreId: string,
+    codeField: string,
+    codeValue: string | undefined,
+    hxbToken: string,
+  ): Promise<string | null> {
+    if (!codeValue) return null;
+    try {
+      const res = await this.hexabaseService.searchItems(
+        this.hxbConfig.projectId,
+        datastoreId,
+        hxbToken,
+        1,
+        1,
+        [{ id: codeField, search_value: [codeValue], exact_match: true }],
+      );
+      const item = res.items?.[0];
+      return item ? item.i_id : null;
+    } catch (error) {
+      return null;
+    }
+  }
+
   async processUpload(
     file: Express.Multer.File,
-    departmentId: string,
+    departmentCode: string,
+    userItemId: string,
+    uploadUserName: string,
     token: string,
   ) {
     // 1. Kiểm tra định dạng file CSV
@@ -241,7 +299,11 @@ export class UserImportCsvService {
     }
 
     // 3. Gọi hàm validate hiện tại của bạn
-    const rawErrors = await this.validateCsvData(records, departmentId, token);
+    const rawErrors = await this.validateCsvData(
+      records,
+      departmentCode,
+      token,
+    );
 
     // 4. Nếu có lỗi, nhóm lại theo rowIndex để hiển thị popup
     if (rawErrors.length > 0) {
@@ -268,17 +330,25 @@ export class UserImportCsvService {
     const uploadRes = await this.hexabaseService.uploadFile(file, token);
 
     const exactFileId = uploadRes?.file_id || uploadRes?.id || uploadRes;
-    console.log(exactFileId);
-
     const fileIds = exactFileId ? [exactFileId] : [];
-    // `EmployeeDataFile` = File field → file_id[]. `EmployeeDataFileName` = Text field → original filename string (not an id array).
+
+    const department_i_id = await this.findLookupItemId(
+      this.hxbConfig.departmentDatastoreId,
+      'DepartmentCode',
+      departmentCode,
+      token,
+    );
+
     const payload = {
       EmployeeDataFile: fileIds,
       EmployeeDataFileName: file.originalname,
-      StatusImport: 'Uploaded',
-      DepartmentCode: departmentId,
+      StatusImport: this.hxbConfig.statusUploadedOptionId,
+      DepartmentCode: departmentCode,
       UploadDate: new Date().toISOString(),
       TotalEmployee: records.length,
+      UploadUser: uploadUserName,
+      UserLookUp: userItemId || '',
+      DepartmentLookUp: department_i_id || '',
     };
 
     console.log('--- KIỂM TRA PAYLOAD TRƯỚC KHI GỬI VÀO CREATE ITEM ---');
@@ -334,18 +404,15 @@ export class UserImportCsvService {
     return Buffer.from('\ufeff' + csvContent, 'utf-8');
   }
 
-  // THÊM HÀM NÀY VÀO TRONG CLASS UserImportCsvService
   async processPreview(
     file: Express.Multer.File,
     departmentId: string,
     token: string,
   ) {
-    // 1. Kiểm tra định dạng file
     if (file.mimetype !== 'text/csv' && !file.originalname.endsWith('.csv')) {
       throw new BadRequestException('File gửi lên phải là định dạng CSV');
     }
 
-    // 2. Parse nội dung CSV
     let records: any[];
     try {
       const content = file.buffer.toString('utf-8').replace(/^\ufeff/, '');
@@ -354,10 +421,8 @@ export class UserImportCsvService {
       throw new BadRequestException('Không thể đọc nội dung file CSV');
     }
 
-    // 3. Validate dữ liệu giống hệt quá trình Upload
     const rawErrors = await this.validateCsvData(records, departmentId, token);
 
-    // 4. Nếu có lỗi, nhóm lại và quăng lỗi 400 (để Frontend bật popup Error)
     if (rawErrors.length > 0) {
       const groupedErrors = rawErrors.reduce((acc: any, err) => {
         const existing = acc.find((i: any) => i.rowIndex === err.rowIndex + 2);
@@ -375,10 +440,9 @@ export class UserImportCsvService {
       });
     }
 
-    // 5. Nếu KHÔNG có lỗi, trả về 10 dòng đầu tiên để Frontend hiện popup Preview
     return {
       message: 'Preview thành công',
-      data: records.slice(0, 10), // Cắt lấy 10 dòng đầu cho nhẹ
+      data: records,
     };
   }
 
@@ -459,7 +523,7 @@ export class UserImportCsvService {
         datastoreId,
         importId,
         {
-          StatusImport: 'Failed',
+          StatusImport: this.hxbConfig.statusFailedOptionId,
           BatchCompleteDate: new Date().toISOString(),
           // Nếu muốn, bạn có thể tạo 1 file ErrorLog dạng text/csv chứa chi tiết lỗi rồi upload và gán ID vào trường ErrorLog ở đây
         },

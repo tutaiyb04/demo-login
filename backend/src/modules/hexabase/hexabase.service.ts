@@ -322,7 +322,6 @@ export class HexabaseService {
       const url = `${this.baseUrl}files`;
 
       const formData = new FormData();
-      // Official @hexabase/hexabase-js uses `fileName` for POST /api/v0/files; apidoc sometimes says `filename` — send both.
       formData.append('fileName', file.originalname);
       formData.append('filename', file.originalname);
       formData.append('file', file.buffer, {

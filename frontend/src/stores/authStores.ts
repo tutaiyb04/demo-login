@@ -3,6 +3,7 @@ import { ref } from "vue";
 import api from "@/utils/axios";
 
 export type AuthInfo = {
+  userId: string;
   username: string;
   email: string | null;
   fullName: string | null;

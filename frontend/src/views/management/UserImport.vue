@@ -9,9 +9,11 @@ import UserImportHeader from "@/components/userImport/UserImportHeader.vue";
 import UserImportForm from "@/components/userImport/UserImportForm.vue";
 import UserImportActions from "@/components/userImport/UserImportActions.vue";
 import api from "@/utils/axios";
+import { useAuthStore } from "@/stores/authStores";
 
-const { showLoading, hideLoading } = useLoading();
 const router = useRouter();
+const authStore = useAuthStore();
+const { showLoading, hideLoading } = useLoading();
 
 const selectedDepartment = ref<string | undefined>(undefined);
 const fileList = ref<any[]>([]);
@@ -101,7 +103,6 @@ onMounted(async () => {
   showLoading();
   try {
     const response = await api.get("/departments");
-    // Giả sử API trả về mảng object, map lại đúng định dạng của Ant Design Select
     departmentOptions.value = response.data.map((dept: any) => ({
       value: dept.DepartmentCode,
       label: dept.DepartmentName,
@@ -210,8 +211,15 @@ const handleUpload = async () => {
   showLoading();
   try {
     const formData = new FormData();
-    formData.append("departmentId", selectedDepartment.value);
+
+    formData.append("departmentCode", selectedDepartment.value);
     formData.append("file", fileToUpload);
+
+    if (authStore.userInfo) {
+      formData.append("userItemId", authStore.userInfo.itemId || "");
+    }
+
+    console.log("authStore.userInfo", authStore.userInfo);
 
     const response = await api.post("/users/import", formData);
     message.success("アップロードに成功しました。");

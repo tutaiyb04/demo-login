@@ -17,4 +17,8 @@ export default registerAs('hexabase', () => ({
     process.env.CAN_PROXY_APPROVE_TRUE_OPTION_ID || '',
   canProxyApproveFalseOptionId:
     process.env.CAN_PROXY_APPROVE_FALSE_OPTION_ID || '',
+  statusUploadedOptionId: process.env.STATUS_UPLOADED_OPTION_ID || '',
+  statusProcessingOptionId: process.env.STATUS_PROCESSING_OPTION_ID || '',
+  statusRegisteredOptionId: process.env.STATUS_REGISTERED_OPTION_ID || '',
+  statusFailedOptionId: process.env.STATUS_FAILED_OPTION_ID || '',
 }));

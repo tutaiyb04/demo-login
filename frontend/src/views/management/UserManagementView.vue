@@ -6,6 +6,8 @@ import type { FilterStatus, ImportRecord } from "@/types/UserImport";
 import UserImportSearch from "@/components/UserManagementImport/UserImportSearch.vue";
 import UserImportFilter from "@/components/UserManagementImport/UserImportFilter.vue";
 import UserImportTable from "@/components/UserManagementImport/UserImportTable.vue";
+import { message } from "ant-design-vue";
+import api from "@/utils/axios";
 
 const router = useRouter();
 const { showLoading, hideLoading } = useLoading();
@@ -18,45 +20,58 @@ const dataSource = ref<ImportRecord[]>([]);
 const fetchData = async () => {
   showLoading();
   try {
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    // Thay thế đoạn setTimeout và mock data
+    const response = await api.get("/users/import/list", {
+      params: {
+        page: 1, // Bạn có thể thêm biến ref pagination nếu muốn làm phân trang
+        perPage: 10,
+        status:
+          selectedFilter.value !== "all" ? selectedFilter.value : undefined,
+      },
+    });
 
-    dataSource.value = [
-      {
-        id: "1",
-        fileName: "user-import-template (2).csv",
-        status: "未実施",
-        uploadTime: "2026/03/02 17:22",
-        uploaderName: "sato",
-        completionTime: "",
-      },
-      {
-        id: "2",
-        fileName: "user-import-template (1)_ho...",
-        status: "登録中",
-        uploadTime: "2026/03/02 13:37",
-        uploaderName: "sato",
-        completionTime: "",
-      },
-      {
-        id: "3",
-        fileName: "user-import-success.csv",
-        status: "成功",
-        uploadTime: "2026/03/02 14:00",
-        uploaderName: "sato",
-        completionTime: "2026/03/02 14:05",
-      },
-      {
-        id: "4",
-        fileName: "user-import-error.csv",
-        status: "失敗",
-        uploadTime: "2026/03/02 15:00",
-        uploaderName: "sato",
-        completionTime: "2026/03/02 15:10",
-      },
-    ];
-    totalResults.value = 115;
+    const dict: Record<string, string> = {
+      // Dành cho trường hợp Hexabase trả về Text (phổ biến nhất)
+      Uploaded: "未実施",
+      uploaded: "未実施",
+      Processing: "登録中",
+      processing: "登録中",
+      Registered: "完了",
+      registered: "完了",
+      Failed: "エラー",
+      failed: "エラー",
+
+      // Dành cho trường hợp Hexabase trả về Option ID (dự phòng)
+      "69ce7c0caef0277b05eb41d3": "未実施",
+      "69ce7c2baef0277b05eb41d4": "登録中",
+      "69ce7c562403b7456177b960": "完了",
+      "69ce7d60aef0277b05eb41d6": "エラー",
+    };
+
+    // Cập nhật dữ liệu từ API trả về
+    dataSource.value = response.data.items.map((item: any) => {
+      let rawStatus = item.status;
+
+      if (Array.isArray(rawStatus)) rawStatus = rawStatus[0];
+      if (rawStatus && typeof rawStatus === "object") {
+        rawStatus =
+          rawStatus.id || rawStatus.value || rawStatus.name || rawStatus;
+      }
+
+      // Ép về chuỗi chuẩn để tra từ điển
+      const statusKey = String(rawStatus || "").trim();
+
+      return {
+        ...item,
+        // Tra vào từ điển, nếu có thì ra tiếng Nhật, không có thì giữ nguyên tiếng Anh
+        status: dict[statusKey] || statusKey || "未実施",
+      };
+    });
+
+    totalResults.value = response.data.total;
   } catch (error) {
-    console.error("Lỗi khi lấy dữ liệu:", error);
+    console.error("Lỗi khi lấy dữ liệu từ Hexabase:", error);
+    message.error("Dữ liệu không thể tải xuống.");
   } finally {
     hideLoading();
   }

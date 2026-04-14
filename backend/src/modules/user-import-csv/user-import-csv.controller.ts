@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   Req,
   Res,
   UnauthorizedException,
@@ -22,15 +23,38 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class UserImportCsvController {
   constructor(private readonly userImportCsvService: UserImportCsvService) {}
 
+  // backend/src/modules/user-import-csv/user-import-csv.controller.ts
+
+  @Get('list')
+  async getAllImports(
+    @Req() req: any,
+    @Query('page') page?: string,
+    @Query('perPage') perPage?: string,
+  ) {
+    const hxbToken = req.user?.hxbToken;
+    if (!hxbToken) {
+      throw new UnauthorizedException('Không tìm thấy token của Hexabase');
+    }
+
+    return await this.userImportCsvService.findAll(
+      hxbToken,
+      Number(page) || 1,
+      Number(perPage) || 10,
+    );
+  }
+
   @Post()
   @UseInterceptors(FileInterceptor('file'))
   async upload(
     @UploadedFile() file: Express.Multer.File,
-    @Body('departmentId') departmentId: string,
+    @Body('departmentCode') departmentCode: string,
+    @Body('userItemId') userItemId: string,
     @Req() req: any,
   ) {
     const user = req.user;
     const hxbToken = user?.hxbToken;
+
+    const uploadUserName = user?.username || 'Unknown User';
 
     if (!hxbToken) {
       throw new UnauthorizedException('Không tìm thấy token của Hexabase');
@@ -38,7 +62,9 @@ export class UserImportCsvController {
 
     return await this.userImportCsvService.processUpload(
       file,
-      departmentId,
+      departmentCode,
+      userItemId,
+      uploadUserName,
       hxbToken,
     );
   }
