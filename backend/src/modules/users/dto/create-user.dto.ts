@@ -20,7 +20,7 @@ export class CreateUserDto {
 
   @IsString()
   @IsOptional()
-  password: string;
+  password?: string;
 
   @IsString()
   @IsNotEmpty({ message: 'Tên không được để trống' })
@@ -80,5 +80,5 @@ export class CreateUserDto {
 
   @IsBoolean()
   @IsOptional()
-  canProxyApprove: boolean;
+  canProxyApprove?: boolean;
 }

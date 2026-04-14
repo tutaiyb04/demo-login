@@ -57,13 +57,16 @@ const defaultColumns: TableColumnType<PreviewRow>[] = [
   { title: "備考", dataIndex: "remarks", key: "remarks", width: 150 },
 ];
 
-const resolvedColumns = computed(
-  () => props.columns ?? defaultColumns,
-);
+const resolvedColumns = computed(() => props.columns ?? defaultColumns);
 
 const rowKey = (record: PreviewRow, index: number) => {
-  if ("id" in record && record.id != null) {
-    return String(record.id);
+  const rec = record as any;
+
+  if (rec["ユーザーID"]) {
+    return String(rec["ユーザーID"]);
+  }
+  if (rec.id != null) {
+    return String(rec.id);
   }
   return `row-${index}`;
 };

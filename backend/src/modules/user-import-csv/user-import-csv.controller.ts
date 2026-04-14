@@ -125,7 +125,7 @@ export class UserImportCsvController {
     const hxbToken = req.user?.hxbToken;
     if (!hxbToken) throw new UnauthorizedException('Không tìm thấy token');
 
-    return await this.userImportCsvService.executeImportData(
+    return await this.userImportCsvService.executeBatchImport(
       importId,
       hxbToken,
     );

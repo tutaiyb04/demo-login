@@ -235,17 +235,27 @@ export class UserImportCsvService {
 
       if (row['ユーザーID']) {
         const userId = getStringValue(row['ユーザーID']);
+        const action = getStringValue(row['操作']); // Lấy hành động (新規, 更新, 削除)
+
         const userExists = await existsInDb(
           userDatastoreId,
-          'userId', // Thay 'UserId' bằng Field ID thật của cột user id trên Hexabase
+          'userId', // Đảm bảo Field ID này đúng trên Hexabase
           userId,
           userExistsCache,
         );
-        if (!userExists) {
+
+        if (action === '新規' && userExists) {
           pushError(
             i,
             'ユーザーID',
-            `ユーザーID「${userId}」は存在していません。`,
+            `ユーザーID「${userId}」は既に存在しています。別のIDを指定してください。`, // User ID đã tồn tại. Vui lòng chọn ID khác.
+          );
+        }
+        if ((action === '更新' || action === '削除') && !userExists) {
+          pushError(
+            i,
+            'ユーザーID',
+            `ユーザーID「${userId}」は存在していません。`, // User ID không tồn tại.
           );
         }
       }
@@ -548,8 +558,7 @@ export class UserImportCsvService {
     }
   }
 
-  // Trong user-import-csv.service.ts (Thêm hàm mới)
-  async executeImportData(importId: string, token: string) {
+  async executeBatchImport(importId: string, token: string) {
     const projectId = this.hxbConfig.projectId;
     const datastoreId = this.hxbConfig.importDatastoreId;
 
@@ -559,51 +568,129 @@ export class UserImportCsvService {
       datastoreId,
       importId,
       {
-        StatusImport: 'Processing',
+        StatusImport: this.hxbConfig.statusProcessingOptionId,
         BatchStartDate: new Date().toISOString(),
       },
       token,
     );
 
+    const errors: string[] = [];
+
     try {
-      // ==========================================
-      // 2. THỰC HIỆN LOGIC ĐĂNG KÝ USER CỦA BẠN Ở ĐÂY
-      // (Đọc file CSV, gọi vòng lặp tạo user trên Hexabase...)
-      // ==========================================
+      const detail = await this.getImportDetail(importId, token);
+      const records = detail.previewData;
 
-      // Giả lập logic chạy thành công:
-      // ...
+      if (!records || records.length === 0) {
+        throw new Error('File CSV không có dữ liệu để import.');
+      }
 
-      // 3. Nếu toàn bộ user được tạo thành công -> Chuyển thành 'Registered'
+      for (const [index, row] of records.entries()) {
+        try {
+          if (row['操作'] !== '新規') continue;
+
+          let departmentIid: string | null = null;
+
+          if (row['部署コード']) {
+            // 2. Sửa lỗi dư tham số: Chỉ truyền đúng 4 tham số mà hàm yêu cầu
+            departmentIid = await this.findLookupItemId(
+              this.hxbConfig.departmentDatastoreId,
+              'DepartmentCode', // Bắt buộc: Đây phải là Field ID của cột Mã PB trong bảng Master Phòng Ban
+              row['部署コード'] as string,
+              token,
+            );
+          }
+
+          let formattedStartDate = row['利用開始日'] as string;
+          if (formattedStartDate && formattedStartDate.includes('/')) {
+            formattedStartDate = formattedStartDate.replace(/\//g, '-');
+          }
+
+          const payload = {
+            userId: row['ユーザーID'],
+            email: row['メールアドレス'],
+            lastName: row['苗字'],
+            lastNameKana: row['仮名苗字'],
+            firstName: row['名前'],
+            firstNameKana: row['仮名名前'],
+            DepartmentLookUp: departmentIid ? [departmentIid] : [],
+            role: row['役割コード'],
+            startDate: formattedStartDate,
+            staffCode: row['スタッフコード'],
+            remarks: row['備考'],
+            userType: row['ユーザー分類'],
+            authId: row['権限ID'],
+          };
+
+          await this.hexabaseService.createItem(
+            projectId,
+            this.hxbConfig.userDatastoreId,
+            payload,
+            token,
+          );
+        } catch (err: any) {
+          const detailError =
+            err.response?.data?.error ||
+            err.response?.data?.message ||
+            err.message;
+
+          errors.push(
+            `Dòng ${index + 2} (${row.email}): ${err.message || 'Lỗi không xác định'}`,
+          );
+        }
+      }
+
+      if (errors.length === 0) {
+        // TRƯỜNG HỢP THÀNH CÔNG TOÀN BỘ
+        await this.hexabaseService.updateItem(
+          projectId,
+          datastoreId,
+          importId,
+          {
+            StatusImport: this.hxbConfig.statusRegisteredOptionId,
+            BatchCompleteDate: new Date().toISOString(),
+          },
+          token,
+        );
+        return { success: true, message: 'Đăng ký hàng loạt thành công!' };
+      } else {
+        // TRƯỜNG HỢP CÓ LỖI (Dù chỉ 1 dòng)
+        throw new Error('Có lỗi xảy ra trong quá trình đăng ký.');
+      }
+    } catch (globalError: any) {
+      console.error('Batch Execution Error:', globalError);
+
+      const logContent =
+        errors.length > 0 ? errors.join('\n') : globalError.message;
+      const logBuffer = Buffer.from(logContent, 'utf-8');
+
+      const errorFile = {
+        originalname: `error_log_${importId}.txt`,
+        buffer: logBuffer,
+        mimetype: 'text/plain',
+        size: logBuffer.length,
+      } as Express.Multer.File;
+
+      // Upload file log lên Hexabase
+      const uploadRes = await this.hexabaseService.uploadFile(errorFile, token);
+      const exactFileId = uploadRes?.file_id || uploadRes?.id || uploadRes;
+      const fileIds = exactFileId ? [exactFileId] : [];
+
       await this.hexabaseService.updateItem(
         projectId,
         datastoreId,
         importId,
         {
-          StatusImport: 'Registered',
+          StatusImport: this.hxbConfig.statusFailedOptionId, // Bạn đã có sẵn cái này
+          ErrorLog: fileIds,
           BatchCompleteDate: new Date().toISOString(),
         },
         token,
       );
 
-      return { message: 'Đăng ký hàng loạt thành công!' };
-    } catch (error) {
-      // 4. Nếu có lỗi (VD: trùng email, DB lỗi) -> Chuyển thành 'Failed'
-      console.error('Lỗi khi đăng ký batch:', error);
-
-      await this.hexabaseService.updateItem(
-        projectId,
-        datastoreId,
-        importId,
-        {
-          StatusImport: this.hxbConfig.statusFailedOptionId,
-          BatchCompleteDate: new Date().toISOString(),
-          // Nếu muốn, bạn có thể tạo 1 file ErrorLog dạng text/csv chứa chi tiết lỗi rồi upload và gán ID vào trường ErrorLog ở đây
-        },
-        token,
-      );
-
-      throw new BadRequestException('Quá trình đăng ký hàng loạt gặp lỗi');
+      return {
+        success: false,
+        message: 'Đăng ký thất bại. Vui lòng kiểm tra log lỗi.',
+      };
     }
   }
 }
