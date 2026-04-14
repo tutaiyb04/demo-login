@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unnecessary-type-assertion */
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
@@ -26,6 +27,38 @@ export class UserImportCsvService {
     private hxbConfig: ConfigType<typeof hexabaseConfig>,
     private readonly hexabaseService: HexabaseService,
   ) {}
+
+  private parseCsvBuffer(buffer: Buffer): any[] {
+    try {
+      let content = buffer.toString('utf-8');
+
+      if (content.charCodeAt(0) === 0xfeff) {
+        content = content.slice(1);
+      }
+      content = content.replace(/^\ufeff/, '');
+
+      const records = csv.parse(content, {
+        columns: true,
+        skip_empty_lines: true,
+        trim: true,
+      });
+
+      return records.map((row: any) => {
+        const cleanRow: any = {};
+        for (const key in row) {
+          // Xóa sạch Zero-width space và BOM
+          const cleanKey = key.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+          cleanRow[cleanKey] = row[key];
+        }
+        return cleanRow;
+      });
+    } catch (error) {
+      console.error('Lỗi Parse CSV:', error);
+      throw new BadRequestException(
+        'Không thể đọc nội dung file CSV. Vui lòng kiểm tra lại định dạng.',
+      );
+    }
+  }
 
   /** Hexabase may return File fields as string, id[], or expanded objects with `filename`. */
   private resolveImportCsvDisplayName(item: Record<string, unknown>): string {
@@ -238,15 +271,18 @@ export class UserImportCsvService {
     );
 
     // Map dữ liệu Hexabase sang định dạng Frontend (ImportRecord)
-    const items = (res.items || []).map((item: any) => ({
-      id: item.i_id,
-      fileName: item.EmployeeDataFileName || 'N/A',
-      // Nếu StatusImport trả về ID, bạn có thể viết hàm resolve label ở đây
-      status: item.StatusImport || 'N/A',
-      uploadTime: item.UploadDate ? item.UploadDate : '',
-      uploaderName: item.UploadUser || 'Unknown',
-      completionTime: item.BatchCompleteDate || '',
-    }));
+    const items = (res.items || []).map((item: any) => {
+      const rawStatus = item.StatusImport || item.status || 'N/A';
+      console.log('rawStatus', rawStatus);
+      return {
+        id: item.i_id,
+        fileName: item.EmployeeDataFileName || 'N/A',
+        status: rawStatus,
+        uploadTime: item.UploadDate ? item.UploadDate : '',
+        uploaderName: item.UploadUser || 'Unknown',
+        completionTime: item.BatchCompleteDate || '',
+      };
+    });
 
     return {
       items,
@@ -292,20 +328,17 @@ export class UserImportCsvService {
     // 2. Parse nội dung CSV
     let records: any[];
     try {
-      const content = file.buffer.toString('utf-8').replace(/^\ufeff/, '');
-      records = csv.parse(content, { columns: true, skip_empty_lines: true });
+      records = this.parseCsvBuffer(file.buffer);
     } catch (e) {
       throw new BadRequestException('Không thể đọc nội dung file CSV');
     }
 
-    // 3. Gọi hàm validate hiện tại của bạn
     const rawErrors = await this.validateCsvData(
       records,
       departmentCode,
       token,
     );
 
-    // 4. Nếu có lỗi, nhóm lại theo rowIndex để hiển thị popup
     if (rawErrors.length > 0) {
       const groupedErrors = rawErrors.reduce((acc: any, err) => {
         const existing = acc.find((i: any) => i.rowIndex === err.rowIndex + 2); // +2 vì tính cả header và index 0
@@ -397,10 +430,8 @@ export class UserImportCsvService {
       '備考メモ',
     ];
 
-    // Kết hợp header và row thành chuỗi CSV (cách nhau bởi dấu phẩy)
     const csvContent = [headers.join(','), exampleRow.join(',')].join('\n');
 
-    // Thêm BOM (UTF-8) để Excel nhận diện đúng font tiếng Nhật
     return Buffer.from('\ufeff' + csvContent, 'utf-8');
   }
 
@@ -415,8 +446,7 @@ export class UserImportCsvService {
 
     let records: any[];
     try {
-      const content = file.buffer.toString('utf-8').replace(/^\ufeff/, '');
-      records = csv.parse(content, { columns: true, skip_empty_lines: true });
+      records = this.parseCsvBuffer(file.buffer);
     } catch (e) {
       throw new BadRequestException('Không thể đọc nội dung file CSV');
     }
@@ -451,23 +481,66 @@ export class UserImportCsvService {
     const datastoreId = this.hxbConfig.importDatastoreId;
 
     try {
-      // Dùng service đã có sẵn để lấy thông tin item từ Datastore
-      const itemDetail = await this.hexabaseService.getItemDetail(
+      const res = await this.hexabaseService.searchItems(
         projectId,
         datastoreId,
-        importId,
         token,
+        1,
+        1,
+        [{ id: 'i_id', search_value: [importId], exact_match: true }],
       );
 
-      // Cấu trúc Hexabase trả về thường nằm trong object "item"
-      const item = itemDetail.item || itemDetail;
+      console.log('res', res);
+      if (!res.items || res.items.length === 0) {
+        throw new BadRequestException('Không tìm thấy bản ghi Import');
+      }
+      const item = res.items[0];
+
+      // lấy File ID
+      let fileId = '';
+      const fileData = item.EmployeeDataFile;
+
+      if (Array.isArray(fileData) && fileData.length > 0) {
+        // Có lúc Hexabase trả về file_id, có lúc trả về id
+        fileId = fileData[0].file_id || fileData[0].id || fileData[0];
+      } else if (fileData && typeof fileData === 'object') {
+        fileId = (fileData as any).file_id || (fileData as any).id;
+      } else if (typeof fileData === 'string') {
+        // Đề phòng trả về JSON String
+        try {
+          const parsed = JSON.parse(fileData);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            fileId = parsed[0].file_id || parsed[0].id;
+          } else {
+            fileId = fileData;
+          }
+        } catch (e) {
+          fileId = fileData;
+        }
+      }
+
+      let previewData: any[] = [];
+      if (fileId) {
+        try {
+          const fileBuffer = await this.hexabaseService.downloadFile(
+            fileId,
+            token,
+          );
+          previewData = this.parseCsvBuffer(fileBuffer);
+          console.log('previewData', previewData);
+        } catch (e: any) {
+          console.error('Lỗi khi tải/đọc file CSV cho Preview:', e.message);
+        }
+      } else {
+        console.warn('CẢNH BÁO: Không trích xuất được fileId từ bản ghi!');
+      }
 
       return {
         importId: item.i_id || importId,
         fileName: this.resolveImportCsvDisplayName(item),
-        totalRecords: Number(item.TotalEmployee) || 0,
+        totalRecords: previewData.length || Number(item.TotalEmployee) || 0,
         status: item.StatusImport,
-        previewData: [], // Mảng rỗng
+        previewData: previewData,
       };
     } catch (error) {
       console.error(error);

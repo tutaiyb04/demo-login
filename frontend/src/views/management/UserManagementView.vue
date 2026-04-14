@@ -31,21 +31,10 @@ const fetchData = async () => {
     });
 
     const dict: Record<string, string> = {
-      // Dành cho trường hợp Hexabase trả về Text (phổ biến nhất)
       Uploaded: "未実施",
-      uploaded: "未実施",
       Processing: "登録中",
-      processing: "登録中",
-      Registered: "完了",
-      registered: "完了",
-      Failed: "エラー",
-      failed: "エラー",
-
-      // Dành cho trường hợp Hexabase trả về Option ID (dự phòng)
-      "69ce7c0caef0277b05eb41d3": "未実施",
-      "69ce7c2baef0277b05eb41d4": "登録中",
-      "69ce7c562403b7456177b960": "完了",
-      "69ce7d60aef0277b05eb41d6": "エラー",
+      Registered: "成功",
+      Failed: "失敗",
     };
 
     // Cập nhật dữ liệu từ API trả về
@@ -58,12 +47,10 @@ const fetchData = async () => {
           rawStatus.id || rawStatus.value || rawStatus.name || rawStatus;
       }
 
-      // Ép về chuỗi chuẩn để tra từ điển
       const statusKey = String(rawStatus || "").trim();
 
       return {
         ...item,
-        // Tra vào từ điển, nếu có thì ra tiếng Nhật, không có thì giữ nguyên tiếng Anh
         status: dict[statusKey] || statusKey || "未実施",
       };
     });
@@ -82,8 +69,7 @@ const handleSearch = () => fetchData();
 const goToNewImport = () => router.push("/user-import");
 
 const handleExecuteBatch = (record: ImportRecord) => {
-  console.log("Thực thi batch:", record.fileName);
-  router.push("/user-import-preview");
+  router.push({ path: "/user-import-preview", query: { id: record.id } });
 };
 
 const handleDelete = async (id: string) => {

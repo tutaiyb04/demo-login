@@ -1,12 +1,27 @@
 <script setup lang="ts">
 import type { PreviewRecord } from "@/types/UserImport";
+import type { TableColumnType } from "ant-design-vue";
+import { computed } from "vue";
 
-defineProps<{
-  dataSource: PreviewRecord[];
-}>();
+type PreviewRow = PreviewRecord | Record<string, unknown>;
 
-const columns = [
-  { title: "操作", key: "action", width: 80, align: "left" },
+const props = withDefaults(
+  defineProps<{
+    dataSource: PreviewRow[];
+    /** When omitted, uses default columns keyed for `PreviewRecord` (English fields). */
+    columns?: TableColumnType<PreviewRow>[];
+  }>(),
+  { columns: undefined },
+);
+
+const defaultColumns: TableColumnType<PreviewRow>[] = [
+  {
+    title: "操作",
+    dataIndex: "actionType",
+    key: "action",
+    width: 80,
+    align: "left" as const,
+  },
   { title: "ユーザーID", dataIndex: "userId", key: "userId", width: 120 },
   { title: "名前", dataIndex: "firstName", key: "firstName", width: 100 },
   {
@@ -41,25 +56,28 @@ const columns = [
   },
   { title: "備考", dataIndex: "remarks", key: "remarks", width: 150 },
 ];
+
+const resolvedColumns = computed(
+  () => props.columns ?? defaultColumns,
+);
+
+const rowKey = (record: PreviewRow, index: number) => {
+  if ("id" in record && record.id != null) {
+    return String(record.id);
+  }
+  return `row-${index}`;
+};
 </script>
 
 <template>
   <a-table
     class="preview-table text-[14px]"
-    :columns="columns"
+    :columns="resolvedColumns"
     :data-source="dataSource"
     :scroll="{ x: 'max-content' }"
     :pagination="{ pageSize: 10, position: ['bottomCenter'] }"
-    row-key="id"
-  >
-    <template #bodyCell="{ column, record }">
-      <template v-if="column.key === 'action'">
-        <span class="text-[14px]">
-          {{ record.actionType }}
-        </span>
-      </template>
-    </template>
-  </a-table>
+    :row-key="rowKey"
+  />
 </template>
 
 <style scoped>

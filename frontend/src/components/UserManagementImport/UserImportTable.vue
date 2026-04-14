@@ -58,7 +58,7 @@ const isRowDisabled = (status: string) =>
   <a-table
     :columns="columns"
     :data-source="dataSource"
-    :pagination="false"
+    :pagination="true"
     :scroll="{ x: 'max-content' }"
   >
     <template #bodyCell="{ column, record }">
